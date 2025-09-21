@@ -1,0 +1,671 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Tailwind CSS v4 custom variant - VSCode may show warning but this is valid */
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Enhanced color palette for travel theme with better dark mode support */
+  --background: oklch(1 0 0);
+  /* White */
+  --foreground: oklch(0.4 0.02 240);
+  /* Slate-600 equivalent */
+  --card: oklch(0.98 0.02 200);
+  /* Cyan-50 equivalent */
+  --card-foreground: oklch(0.25 0.08 200);
+  /* Cyan-800 equivalent */
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.4 0.02 240);
+  --primary: oklch(0.25 0.08 200);
+  /* Cyan-800 */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.65 0.15 85);
+  /* Amber-500 */
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.96 0.01 240);
+  /* Slate-100 equivalent */
+  --muted-foreground: oklch(0.4 0.02 240);
+  --accent: oklch(0.65 0.15 85);
+  /* Amber-500 */
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.9 0.01 240);
+  /* Slate-200 equivalent */
+  --input: oklch(0.98 0.02 200);
+  --ring: oklch(0.25 0.08 200 / 0.2);
+  --chart-1: oklch(0.25 0.08 200);
+  --chart-2: oklch(0.65 0.15 85);
+  --chart-3: oklch(0.577 0.245 27.325);
+  --chart-4: oklch(0.4 0.02 240);
+  --chart-5: oklch(0.96 0.01 240);
+  --radius: 0.5rem;
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.4 0.02 240);
+  --sidebar-primary: oklch(0.25 0.08 200);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.65 0.15 85);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.9 0.01 240);
+  --sidebar-ring: oklch(0.25 0.08 200 / 0.2);
+}
+
+.dark {
+  /* Improved dark mode colors with travel theme consistency */
+  --background: oklch(0.08 0.01 240);
+  /* Dark slate background */
+  --foreground: oklch(0.95 0.01 240);
+  /* Light text */
+  --card: oklch(0.12 0.01 240);
+  /* Slightly lighter card background */
+  --card-foreground: oklch(0.95 0.01 240);
+  --popover: oklch(0.12 0.01 240);
+  --popover-foreground: oklch(0.95 0.01 240);
+  --primary: oklch(0.7 0.12 200);
+  /* Lighter cyan for dark mode */
+  --primary-foreground: oklch(0.08 0.01 240);
+  --secondary: oklch(0.75 0.12 85);
+  /* Lighter amber for dark mode */
+  --secondary-foreground: oklch(0.08 0.01 240);
+  --muted: oklch(0.18 0.01 240);
+  --muted-foreground: oklch(0.65 0.01 240);
+  --accent: oklch(0.2 0.01 240);
+  /* Darker accent background for better contrast */
+  --accent-foreground: oklch(0.8 0.15 200);
+  /* Cyan text for hover states */
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.95 0.01 240);
+  --border: oklch(0.25 0.01 240);
+  /* Lighter border for better visibility */
+  --input: oklch(0.25 0.01 240);
+  /* Lighter input background for better outline visibility */
+  --ring: oklch(0.7 0.12 200 / 0.3);
+  --chart-1: oklch(0.7 0.12 200);
+  --chart-2: oklch(0.75 0.12 85);
+  --chart-3: oklch(0.65 0.2 25);
+  --chart-4: oklch(0.65 0.01 240);
+  --chart-5: oklch(0.18 0.01 240);
+  --sidebar: oklch(0.12 0.01 240);
+  --sidebar-foreground: oklch(0.95 0.01 240);
+  --sidebar-primary: oklch(0.7 0.12 200);
+  --sidebar-primary-foreground: oklch(0.08 0.01 240);
+  --sidebar-accent: oklch(0.2 0.01 240);
+  /* Match main accent background */
+  --sidebar-accent-foreground: oklch(0.8 0.15 200);
+  /* Match main accent foreground - cyan */
+  --sidebar-border: oklch(0.25 0.01 240);
+  /* Match main border for consistency */
+  --sidebar-ring: oklch(0.7 0.12 200 / 0.3);
+}
+
+@theme inline {
+  /* Fixed font variables to match Inter font import */
+  --font-sans: var(--font-inter);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Cursor pointer for all clickable elements */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="file"]::-webkit-file-upload-button,
+  label[for],
+  select,
+  summary,
+  [tabindex]:not([tabindex="-1"]),
+  a,
+  area[href],
+  input[type="radio"],
+  input[type="checkbox"],
+  details>summary,
+  [onclick],
+  [data-clickable],
+  /* Slider components */
+  [role="slider"],
+  [data-slot="slider"],
+  [data-slot="slider-thumb"],
+  [data-slot="slider-track"],
+  [data-slot="slider-range"] {
+    cursor: pointer;
+  }
+
+  /* Specific cursor for text inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  textarea {
+    cursor: text;
+  }
+
+  /* Disabled elements should show default cursor */
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled,
+  [disabled] {
+    cursor: not-allowed;
+  }
+}
+
+/* Ultra-smooth page transitions */
+@layer utilities {
+
+  /* Page container transition */
+  .page-transition {
+    animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .page-exit {
+    animation: fadeOutDown 0.3s cubic-bezier(0.6, 0, 0.8, 1) forwards;
+  }
+
+  /* Smooth fade animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeOutDown {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideOutLeft {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+  }
+
+  /* Component-level transitions */
+  .smooth-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Button transitions */
+  .btn-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-smooth:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-smooth:active {
+    transform: translateY(0);
+  }
+
+  /* Form element transitions */
+  .input-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .input-smooth:focus {
+    transform: scale(1.01);
+  }
+
+  /* Navigation transitions */
+  .nav-smooth {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-smooth:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Step progress transitions */
+  .step-smooth {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .step-smooth:hover {
+    transform: scale(1.05);
+  }
+
+  .step-smooth:active {
+    transform: scale(0.95);
+  }
+
+  /* Mobile-optimized transitions */
+  @media (max-width: 768px) {
+    .page-transition {
+      animation: mobileSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes mobileSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Reduce transform effects on mobile for better performance */
+    .card-hover:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-smooth:hover {
+      transform: none;
+    }
+
+    .step-smooth:hover {
+      transform: scale(1.02);
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+
+    .page-transition,
+    .page-exit,
+    .smooth-transition,
+    .card-hover,
+    .btn-smooth,
+    .input-smooth,
+    .nav-smooth,
+    .step-smooth {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* Hardware acceleration for smooth animations */
+  .page-transition,
+  .card-hover,
+  .btn-smooth,
+  .input-smooth,
+  .nav-smooth,
+  .step-smooth {
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+}
+
+/* Ultra-smooth page transitions */
+@layer utilities {
+
+  /* Page container transition */
+  .page-transition {
+    animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .page-exit {
+    animation: fadeOutDown 0.3s cubic-bezier(0.6, 0, 0.8, 1) forwards;
+  }
+
+  /* Smooth fade animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeOutDown {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideOutLeft {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+  }
+
+  /* Component-level transitions */
+  .smooth-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Button transitions */
+  .btn-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-smooth:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-smooth:active {
+    transform: translateY(0);
+  }
+
+  /* Form element transitions */
+  .input-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .input-smooth:focus {
+    transform: scale(1.01);
+  }
+
+  /* Mobile-optimized transitions */
+  @media (max-width: 768px) {
+    .page-transition {
+      animation: mobileSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes mobileSlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+
+    .page-transition,
+    .page-exit,
+    .smooth-transition,
+    .card-hover,
+    .btn-smooth,
+    .input-smooth,
+    .nav-smooth,
+    .step-smooth {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* Hardware acceleration for smooth animations */
+  .page-transition,
+  .card-hover,
+  .btn-smooth,
+  .input-smooth,
+  .nav-smooth,
+  .step-smooth {
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Planning flow specific transitions and keyframes */
+  .planning-step-transition {
+    animation: slideInFromRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .planning-step-exit {
+    animation: slideOutToLeft 0.3s cubic-bezier(0.6, 0, 0.8, 1) forwards;
+  }
+
+  @keyframes slideInFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideOutToLeft {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+  }
+
+  /* Custom Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
+  }
+
+  /* Dark mode scrollbar adjustments */
+  .dark ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #404040;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
+  }
+
+  /* Firefox scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted) / 0.1);
+  }
+
+  .dark * {
+    scrollbar-color: #404040 #1a1a1a;
+  }
+
+  /* Hotels horizontal scroll specific styling */
+  .hotels-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+  }
+
+  .hotels-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .hotels-scroll::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 0 12px;
+  }
+
+  .hotels-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.3);
+    border-radius: 3px;
+    transition: all 0.2s ease;
+  }
+
+  .hotels-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
+  }
+
+  .dark .hotels-scroll {
+    scrollbar-color: #404040 transparent;
+  }
+
+  .dark .hotels-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dark .hotels-scroll::-webkit-scrollbar-thumb {
+    background: #404040;
+  }
+
+  .dark .hotels-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.5);
+  }
+
+  /* Ultra-smooth hotel card animations */
+  .hotels-scroll .cursor-pointer {
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, box-shadow, background-color;
+  }
+
+  .hotels-scroll .cursor-pointer:hover {
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hotels-scroll .cursor-pointer:active {
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: scale(0.98);
+  }
+
+  /* Instant ring border for selected cards */
+  .hotels-scroll .cursor-pointer[class*="ring-2"] {
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+}

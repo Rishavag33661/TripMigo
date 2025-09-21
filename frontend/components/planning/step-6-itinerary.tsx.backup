@@ -1,0 +1,577 @@
+"use client"
+
+import type { ExtendedTripData } from "@/app/planning/page";
+import { GoogleMapsWrapper } from "@/components/google-maps-wrapper";
+import { useItineraryStorage } from "@/components/itinerary-storage-manager"; // Import storage hook
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import * as ApiService from "@/lib/api";
+import { Camera, Car, Clock, Download, Hotel, MapPin, Save, Share, Utensils } from "lucide-react";
+import { useEffect, useState } from "react";
+
+interface PlanningStep6Props {
+  tripData: ExtendedTripData
+  updateTripData: (data: Partial<ExtendedTripData>) => void
+  onPrev: () => void
+}
+
+interface ItineraryItem {
+  time: string
+  title: string
+  description: string
+  type: "travel" | "accommodation" | "food" | "activity" | "transport"
+  icon: string | any  // Can be string identifier or React component
+  duration?: string
+  location?: string
+}
+
+interface DayItinerary {
+  day: number
+  date: string
+  title: string
+  items: ItineraryItem[]
+}
+
+
+
+export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep6Props) {
+  const [itinerary, setItinerary] = useState<DayItinerary[]>([])
+  const [isGenerating, setIsGenerating] = useState(true)
+  const [isSaving, setIsSaving] = useState(false) // Add saving state
+  const [saveSuccess, setSaveSuccess] = useState(false) // Add success state
+  const [itineraryName, setItineraryName] = useState("") // Add name input state
+  const [nameError, setNameError] = useState("") // Add error state for duplicate names
+  const [hasUserEditedName, setHasUserEditedName] = useState(false) // Track if user has edited the name
+  const [hasGenerated, setHasGenerated] = useState(false) // Track if we've already generated
+  const { saveItinerary, savedItineraries } = useItineraryStorage() // Use storage hook
+
+  // Check if name already exists
+  const checkDuplicateName = (name: string) => {
+    return savedItineraries.some(itinerary =>
+      itinerary.name.toLowerCase().trim() === name.toLowerCase().trim()
+    )
+  }
+
+  // Handle name change with validation
+  const handleNameChange = (value: string) => {
+    setItineraryName(value)
+    setNameError("")
+    setHasUserEditedName(true) // Mark that user has edited the name
+
+    if (value.trim() && checkDuplicateName(value)) {
+      setNameError("An itinerary with this name already exists")
+    }
+  }
+
+  useEffect(() => {
+    // Only set default name if user hasn't edited it yet
+    if (!hasUserEditedName) {
+      let defaultName = `Trip to ${tripData.destination || 'Unknown'} - ${new Date().toLocaleDateString()}`
+
+      // Ensure unique default name
+      let counter = 1
+      while (checkDuplicateName(defaultName)) {
+        defaultName = `Trip to ${tripData.destination || 'Unknown'} - ${new Date().toLocaleDateString()} (${counter})`
+        counter++
+      }
+
+      console.log("Setting default itinerary name:", defaultName)
+      setItineraryName(defaultName)
+    }
+  }, [tripData.destination, hasUserEditedName, savedItineraries]) // Only depend on destination and edit status
+
+  useEffect(() => {
+    // Separate effect for itinerary generation using real API
+    const generateItinerary = async () => {
+      // Only generate if we haven't already generated
+      if (hasGenerated) return;
+
+      try {
+        setIsGenerating(true)
+        setHasGenerated(true) // Mark as generated to prevent re-runs
+
+        console.log('=== STARTING ITINERARY GENERATION ===');
+
+        // Convert our form data to the backend API format
+        const tripRequest = ApiService.convertFormDataToTripRequest(tripData)
+
+        console.log('Generating itinerary with request:', tripRequest)
+        console.log('Requested number of days:', tripData.numberOfDays || 3)
+        console.log('API URL:', `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/itinerary/generate`)
+
+        // Call the backend API to generate the itinerary
+        const response = await ApiService.tripPlannerApi.generateItinerary(tripRequest)
+        
+        console.log('API Response:', response)
+        console.log('Raw response structure:', response)
+        
+        // Handle different response structures
+        let itineraryData = response
+        if (response.itinerary) {
+          itineraryData = response.itinerary
+        }
+        
+        // Convert to our component's expected format
+        let parsedItinerary: DayItinerary[] = []
+        
+        if (itineraryData.days && Array.isArray(itineraryData.days)) {
+          // Map from API format to component format
+          parsedItinerary = itineraryData.days.map((day: any) => ({
+            day: day.day,
+            date: day.date,
+            title: day.title,
+            items: day.items?.map((item: any) => ({
+              time: item.time,
+              title: item.title,
+              description: item.description,
+              type: item.type,
+              icon: item.icon,
+              duration: item.duration,
+              location: item.location
+            })) || []
+          }))
+        }
+        
+        console.log('Parsed itinerary for display:', parsedItinerary)
+        
+        // Fallback if no valid data
+        if (!parsedItinerary || parsedItinerary.length === 0) {
+          console.log('No valid itinerary data, creating fallback')
+          parsedItinerary = createFallbackItinerary("Unable to parse API response", tripData, tripData.numberOfDays || 3)
+        }
+        
+        setItinerary(parsedItinerary)
+        updateTripData({ 
+          itinerary: parsedItinerary,
+          aiResponse: response,
+          placeDetails: response.place_details || {
+            place_id: 'generated',
+            rating: 4.5,
+            address: tripData.destination || 'Unknown'
+          }
+        })
+                type: "activity" as const,
+                icon: "activity",
+                duration: "3 hours",
+                location: morningLocations[(day - 1) % morningLocations.length]
+              },
+              {
+                time: "2:00 PM",
+                title: "Local cuisine experience",
+                description: "Try traditional food at a recommended restaurant",
+                type: "food" as const,
+                icon: "food",
+                duration: "2 hours",
+                location: afternoonLocations[(day - 1) % afternoonLocations.length]
+              },
+              {
+                time: "7:00 PM",
+                title: "Evening activities",
+                description: "Relax and enjoy the local nightlife or cultural sites",
+                type: "activity" as const,
+                icon: "activity",
+                duration: "2-3 hours",
+                location: eveningLocations[(day - 1) % eveningLocations.length]
+              }
+            ]
+          });
+        }
+
+        console.log('Test itinerary created:', testItinerary);
+        setItinerary(testItinerary);
+        updateTripData({
+          itinerary: testItinerary,
+          aiResponse: `Generated ${maxDays}-day itinerary for ${tripData.destination}`,
+          placeDetails: {
+            place_id: 'test_123',
+            rating: 4.5,
+            address: tripData.destination || 'Test Location'
+          }
+        });
+
+        // Uncomment this section to test real API
+        /*
+        // Call the backend API to generate the itinerary
+        const response = await ApiService.tripGoApi.generateItinerary(tripRequest)
+        
+        console.log('API Response:', response)
+        console.log('Raw itinerary text:', response.itinerary)
+        
+        // Parse the AI-generated itinerary text into our structured format
+        // Limit to the number of days specified by the user
+        const maxDays = tripData.numberOfDays || 3;
+        
+        // Try parsing first
+        let parsedItinerary = ApiService.parseItineraryText(response.itinerary, maxDays)
+        
+        console.log('Parsed itinerary:', parsedItinerary)
+        console.log('Number of days in parsed itinerary:', parsedItinerary?.length)
+        
+        // If parsing fails or returns empty, use fallback immediately
+        if (!parsedItinerary || parsedItinerary.length === 0) {
+          console.log('Parsing failed or returned empty, using fallback')
+          parsedItinerary = createFallbackItinerary(response.itinerary, tripData, maxDays)
+          console.log('Fallback itinerary:', parsedItinerary)
+        }
+        
+        setItinerary(parsedItinerary)
+        updateTripData({ 
+          itinerary: parsedItinerary,
+          aiResponse: response.itinerary,
+          placeDetails: response.place_details
+        })
+        */
+
+      } catch (error) {
+        console.error('Error generating itinerary:', error)
+
+        // Show error to user and provide fallback
+        const errorMessage = error instanceof ApiService.ApiError
+          ? `API Error: ${error.message}`
+          : 'Failed to generate itinerary. Please try again.'
+
+        // Create a fallback itinerary with error message
+        const maxDays = tripData.numberOfDays || 3;
+        const fallbackItinerary = createErrorFallbackItinerary(tripData, errorMessage, maxDays)
+        setItinerary(fallbackItinerary)
+        updateTripData({ itinerary: fallbackItinerary })
+      } finally {
+        setIsGenerating(false)
+      }
+    }
+
+    generateItinerary()
+  }, [hasGenerated]) // Only depend on hasGenerated to prevent infinite loops
+
+  // Helper function to create fallback itinerary when API fails
+  const createErrorFallbackItinerary = (tripData: ExtendedTripData, errorMessage: string, maxDays?: number): DayItinerary[] => {
+    const numDays = maxDays || tripData.numberOfDays || 1;
+    const errorDays: DayItinerary[] = [];
+
+    for (let i = 1; i <= numDays; i++) {
+      errorDays.push({
+        day: i,
+        date: `Day ${i}`,
+        title: i === 1 ? "Unable to Generate Itinerary" : `Day ${i} - ${tripData.destination}`,
+        items: [
+          {
+            time: i === 1 ? "Error" : "TBD",
+            title: i === 1 ? "Itinerary Generation Failed" : `Day ${i} - Planning Required`,
+            description: i === 1
+              ? errorMessage + " Please check your internet connection and try again, or contact support if the problem persists."
+              : "Unable to generate activities for this day. Please try regenerating the itinerary.",
+            type: "activity",
+            icon: Camera,
+            duration: "N/A",
+            location: tripData.destination || "Unknown"
+          }
+        ]
+      });
+    }
+
+    return errorDays;
+  }
+
+  // Helper function to create simple fallback when parsing fails
+  const createFallbackItinerary = (aiText: string, tripData: ExtendedTripData, maxDays?: number): DayItinerary[] => {
+    const days = maxDays || tripData.numberOfDays || parseInt(String(tripData.duration || '3')) || 3
+    const fallbackDays: DayItinerary[] = []
+
+    console.log('Creating fallback itinerary for', days, 'days with text:', aiText)
+
+    // Try to extract some activities from the text
+    const lines = aiText.split('\n').filter(line => line.trim());
+    const activities = lines.slice(0, days * 3); // Get some activities
+
+    for (let i = 1; i <= days; i++) {
+      const dayActivities = [];
+
+      // Create 3 activities per day
+      const times = ['9:00 AM', '2:00 PM', '7:00 PM'];
+      const defaultActivities = [
+        `Explore ${tripData.destination || 'the destination'}`,
+        `Visit local attractions in ${tripData.destination || 'the area'}`,
+        `Experience local dining and culture`
+      ];
+
+      for (let j = 0; j < 3; j++) {
+        const activityIndex = (i - 1) * 3 + j;
+        const activityText = activities[activityIndex] || defaultActivities[j];
+
+        dayActivities.push({
+          time: times[j],
+          title: activityText.replace(/^#+\s*/, '').replace(/^\*\*.*?\*\*:?\s*/, '').trim() || defaultActivities[j],
+          description: activityText.trim() || defaultActivities[j],
+          type: (j === 0 ? "activity" : j === 1 ? "food" : "activity") as "travel" | "accommodation" | "food" | "activity" | "transport",
+          icon: j === 0 ? "activity" : j === 1 ? "food" : "activity",
+          duration: "2-3 hours",
+          location: tripData.destination || "Various locations"
+        });
+      }
+
+      fallbackDays.push({
+        day: i,
+        date: `Day ${i}`,
+        title: `Day ${i} - ${tripData.destination || 'Your Trip'}`,
+        items: dayActivities
+      })
+    }
+
+    return fallbackDays
+  }
+
+  const handleSaveItinerary = () => {
+    if (!itineraryName.trim()) {
+      setNameError("Please enter a name for your itinerary")
+      return
+    }
+
+    if (checkDuplicateName(itineraryName)) {
+      setNameError("An itinerary with this name already exists")
+      return
+    }
+
+    setIsSaving(true)
+    setNameError("")
+
+    // Simulate saving process
+    setTimeout(() => {
+      const savedId = saveItinerary(tripData, itineraryName)
+      console.log("Itinerary saved with ID:", savedId)
+      setIsSaving(false)
+      setSaveSuccess(true)
+
+      // Hide success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000)
+    }, 1000)
+  }
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "travel":
+        return "bg-blue-100 text-blue-700"
+      case "accommodation":
+        return "bg-green-100 text-green-700"
+      case "food":
+        return "bg-orange-100 text-orange-700"
+      case "activity":
+        return "bg-purple-100 text-purple-700"
+      case "transport":
+        return "bg-gray-100 text-gray-700"
+      default:
+        return "bg-gray-100 text-gray-700"
+    }
+  }
+
+  if (isGenerating) {
+    return (
+      <Card className="text-center py-12">
+        <CardContent>
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <CardTitle className="text-xl mb-2">Generating Your Perfect Itinerary</CardTitle>
+          <CardDescription>Creating a personalized day-wise plan based on your preferences...</CardDescription>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <Card className="text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">Your Complete Trip Itinerary</CardTitle>
+          <CardDescription>Day-wise plan for your trip to {tripData.destination}</CardDescription>
+        </CardHeader>
+      </Card>
+
+      {/* Save Itinerary Section */}
+      <div className="flex justify-center">
+        <Card className="w-full max-w-md bg-card border-border shadow-sm relative z-10">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="itinerary-name" className="text-base font-semibold text-foreground">
+                  Save this itinerary
+                </Label>
+                <Input
+                  id="itinerary-name"
+                  type="text"
+                  value={itineraryName}
+                  onChange={(e) => {
+                    console.log("Input changing:", e.target.value)
+                    handleNameChange(e.target.value)
+                  }}
+                  onFocus={() => console.log("Input focused")}
+                  onBlur={() => console.log("Input blurred")}
+                  placeholder="Enter a name for your itinerary"
+                  className={`mt-1 ${nameError ? "border-destructive focus-visible:ring-destructive/20" : ""}`}
+                  autoComplete="off"
+                  readOnly={false}
+                  disabled={false}
+                  style={{ pointerEvents: 'auto', zIndex: 1 }}
+                />
+                {nameError && (
+                  <p className="text-sm text-destructive">{nameError}</p>
+                )}
+              </div>
+              <Button
+                onClick={handleSaveItinerary}
+                disabled={isSaving || !itineraryName.trim() || !!nameError}
+                className="w-full flex items-center gap-2"
+              >
+                <Save className="h-4 w-4" />
+                {isSaving ? "Saving..." : saveSuccess ? "Saved!" : "Save Itinerary"}
+              </Button>
+              {saveSuccess && (
+                <p className="text-sm text-green-600 dark:text-green-400 text-center">
+                  Itinerary saved successfully! You can view it in your{" "}
+                  <a href="/itineraries" className="underline hover:text-green-700 dark:hover:text-green-300">
+                    Saved Itineraries
+                  </a>
+                  .
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Trip Summary */}
+      <Card className="bg-primary/5 border-primary/20">
+        <CardContent className="p-6">
+          <div className="grid md:grid-cols-4 gap-4 text-center">
+            <div>
+              <div className="font-semibold text-lg">{tripData.destination}</div>
+              <div className="text-sm text-muted-foreground">Destination</div>
+            </div>
+            <div>
+              <div className="font-semibold text-lg">{tripData.numberOfPeople}</div>
+              <div className="text-sm text-muted-foreground">
+                {tripData.numberOfPeople === 1 ? "Traveler" : "Travelers"}
+              </div>
+            </div>
+            <div>
+              <div className="font-semibold text-lg">${tripData.budget.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">Budget</div>
+            </div>
+            <div>
+              <div className="font-semibold text-lg">3 Days</div>
+              <div className="text-sm text-muted-foreground">Duration</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Itinerary Days */}
+      <div className="space-y-6">
+        {itinerary.map((day) => {
+          return (
+            <div key={day.day} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Day Details Card - Left Side (2/3 width) */}
+              <div className="lg:col-span-2">
+                <Card className="overflow-hidden shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      Day {day.day} - {day.date}
+                    </CardTitle>
+                    <CardDescription>
+                      {day.title}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="space-y-0">
+                      {day.items.map((item, index) => {
+                        // Icon mapping for activity types (matching the API response)
+                        const iconMap: { [key: string]: any } = {
+                          food: Utensils,
+                          accommodation: Hotel,
+                          transport: Car,
+                          activity: Camera,
+                          sightseeing: Camera,
+                          restaurant: Utensils,  // fallback mappings
+                          hotel: Hotel,
+                          default: Camera
+                        };
+
+                        // Get the icon component, always fallback to Camera if not found
+                        const iconKey = item.icon || 'default';
+                        const IconComponent = iconMap[iconKey] || Camera;
+
+                        // Debug log to see what we're getting  
+                        if (index === 0) {
+                          console.log('First item in day', day.day, ':', item);
+                          console.log('All items for day', day.day, ':', day.items);
+                        }
+
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-start gap-4 p-4 border-b last:border-b-0 hover:bg-muted/30 transition-colors"
+                          >
+                            <div className="flex flex-col items-center">
+                              <div className="text-sm font-semibold text-muted-foreground mb-2">{item.time}</div>
+                              <div className={`p-2 rounded-lg ${getTypeColor(item.type)}`}>
+                                <IconComponent className="h-4 w-4" />
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold mb-1">{item.title}</h4>
+                              <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
+                              <div className="flex flex-wrap gap-2">
+                                {item.duration && (
+                                  <Badge variant="outline" className="text-xs flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {item.duration}
+                                  </Badge>
+                                )}
+                                {item.location && (
+                                  <Badge variant="outline" className="text-xs flex items-center gap-1">
+                                    <MapPin className="h-3 w-3" />
+                                    {item.location}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Activity Map Flow - Right Side (1/3 width) */}
+              <div className="lg:col-span-1">
+                <GoogleMapsWrapper
+                  key={`map-day-${day.day}`}
+                  activities={day.items}
+                  destination={tripData.destination || ''}
+                  dayNumber={day.day}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Button variant="outline" onClick={onPrev} className="flex-1 bg-transparent">
+          Previous
+        </Button>
+        <Button className="flex-1 flex items-center gap-2">
+          <Download className="h-4 w-4" />
+          Download Itinerary
+        </Button>
+        <Button variant="outline" className="flex-1 flex items-center gap-2 bg-transparent">
+          <Share className="h-4 w-4" />
+          Share Trip
+        </Button>
+      </div>
+    </div>
+  )
+}
