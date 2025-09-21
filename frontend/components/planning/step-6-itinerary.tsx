@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, Car, Clock, Download, Hotel, MapPin, RefreshCw, Save, Share, Utensils } from "lucide-react";
+import { Camera, Car, Clock, Download, Hotel, MapPin, RefreshCw, Save, CreditCard, Utensils } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 interface PlanningStep6Props {
@@ -734,8 +734,8 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
           Download Itinerary
         </Button>
         <Button variant="outline" className="flex-1 flex items-center gap-2 bg-transparent">
-          <Share className="h-4 w-4" />
-          Share Trip
+          <CreditCard className="h-4 w-4" />
+          Proceed to Booking
         </Button>
       </div>
     </div>

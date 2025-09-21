@@ -299,7 +299,7 @@ app.post('/generate-itinerary', (req, res) => {
 app.get('/maps-key', (req, res) => {
     res.json({
         // Using the actual Google Maps API key
-        mapsApiKey: 'AIzaSyCBN1eADgkhJlUE4tSW-E8ucIeizOvCGYY'
+        mapsApiKey: ''
     });
 });
 
