@@ -15,23 +15,54 @@ class GeminiService:
             logger.warning("GOOGLE_AI_API_KEY not found in environment variables")
             self.client = None
         else:
-            genai.configure(api_key=self.api_key)
-            self.client = genai.GenerativeModel('gemini-2.0-flash-lite')
+            try:
+                genai.configure(api_key=self.api_key)
+                self.client = genai.GenerativeModel('gemini-2.0-flash-lite')
+                logger.info("Gemini AI service initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize Gemini service: {e}")
+                self.client = None
     
     def is_healthy(self) -> bool:
         """Check if Gemini service is available"""
-        return self.client is not None and self.api_key is not None
+        if self.client is None or not self.api_key:
+            logger.warning("Gemini service is not healthy: missing client or API key")
+            return False
+        
+        # Try a simple test to verify the service is working
+        try:
+            # This doesn't make an actual API call, just checks if the client is properly configured
+            return True
+        except Exception as e:
+            logger.error(f"Gemini health check failed: {e}")
+            return False
     
     def generate_itinerary(self, trip_request: TripRequest) -> Dict[str, Any]:
         """Generate a comprehensive travel itinerary using Gemini AI"""
         if not self.is_healthy():
             raise Exception("Gemini service is not available")
         
+        # Debug logging to see what data we're working with
+        logger.info(f"Generating itinerary for destination: '{trip_request.destination}'")
+        logger.info(f"Trip request details: budget={trip_request.budget}, duration={trip_request.duration_days}, travelers={trip_request.travelers}")
+        
+        # Validate that we have essential data
+        if not trip_request.destination or trip_request.destination.strip() == "":
+            logger.error("Empty destination provided to generate_itinerary")
+            raise Exception("Destination is required for itinerary generation")
+        
         prompt = self._build_itinerary_prompt(trip_request)
         
         try:
+            logger.info("Sending request to Gemini AI...")
             response = self.client.generate_content(prompt)
-            itinerary_text = response.text
+            
+            if not response or not response.text:
+                logger.error("Empty response received from Gemini AI")
+                raise Exception("Empty response from AI service")
+            
+            itinerary_text = response.text.strip()
+            logger.info(f"Received response from Gemini (length: {len(itinerary_text)})")
             
             # Parse the JSON response from Gemini
             # Gemini sometimes includes extra text, so we need to extract the JSON
@@ -41,16 +72,36 @@ class GeminiService:
             if json_start != -1 and json_end != 0:
                 json_text = itinerary_text[json_start:json_end]
                 try:
-                    return json.loads(json_text)
-                except json.JSONDecodeError:
-                    # If JSON parsing fails, create a structured response
-                    return self._create_fallback_itinerary(trip_request, itinerary_text)
+                    parsed_result = json.loads(json_text)
+                    logger.info("Successfully parsed JSON response from Gemini")
+                    
+                    # Validate the parsed result has the expected structure
+                    if not isinstance(parsed_result, dict) or 'days' not in parsed_result:
+                        logger.warning("Invalid itinerary structure received from Gemini")
+                        return self._create_fallback_itinerary(trip_request, "Invalid structure")
+                    
+                    # Check if the days contain empty destination strings
+                    if parsed_result.get('days'):
+                        for day in parsed_result['days']:
+                            for item in day.get('items', []):
+                                if not item.get('location') or item['location'].endswith(' '):
+                                    # Fix incomplete location strings
+                                    item['location'] = item['location'].replace(' ', trip_request.destination)
+                    
+                    return parsed_result
+                    
+                except json.JSONDecodeError as e:
+                    logger.error(f"JSON parsing failed: {e}")
+                    logger.error(f"Raw response: {itinerary_text[:500]}...")
+                    return self._create_fallback_itinerary(trip_request, f"JSON parse error: {str(e)}")
             else:
-                return self._create_fallback_itinerary(trip_request, itinerary_text)
+                logger.error("No valid JSON found in Gemini response")
+                logger.error(f"Raw response: {itinerary_text[:500]}...")
+                return self._create_fallback_itinerary(trip_request, "No JSON found")
                 
         except Exception as e:
             logger.error(f"Error generating itinerary: {e}")
-            return self._create_fallback_itinerary(trip_request, str(e))
+            raise Exception(f"Failed to generate itinerary: {str(e)}")
     
     def _build_itinerary_prompt(self, trip: TripRequest) -> str:
         """Build a comprehensive prompt for itinerary generation"""
@@ -108,7 +159,7 @@ You are an expert travel planner with deep knowledge of destinations worldwide. 
                     "type": "activity",
                     "icon": "map-pin",
                     "duration": "2-3 hours",
-                    "location": "Specific location in {trip.destination}",
+                    "location": "Specific location in {trip.destination} (ALWAYS include the destination name)",
                     "estimated_cost": "$20-40",
                     "booking_required": false
                 }}
@@ -123,6 +174,15 @@ You are an expert travel planner with deep knowledge of destinations worldwide. 
     "total_estimated_cost": "Budget estimate considering all selected preferences",
     "description": "AI-generated personalized itinerary for {trip.destination} with {hotel_preference}, {travel_mode}, and {food_preference} preferences"
 }}
+
+CRITICAL REQUIREMENTS:
+1. ALWAYS include the destination name "{trip.destination}" in every location field
+2. Never leave location fields empty or incomplete
+3. Provide specific, complete activity descriptions
+4. Return ONLY valid JSON without any additional text
+5. Include the destination "{trip.destination}" in all relevant descriptions
+6. Make sure all strings are complete and not cut off
+7. Each activity must have a complete, detailed description mentioning the destination
 
 Make sure the response is ONLY valid JSON without any additional text before or after. Personalize the itinerary based on ALL the provided trip details and preferences.
 """

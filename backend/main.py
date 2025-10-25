@@ -54,11 +54,17 @@ def root():
 
 @app.get("/health")
 def health_check():
+    import os
     return {
         "status": "healthy",
         "services": {
             "gemini": gemini_service.is_healthy(),
             "maps": maps_service.is_healthy()
+        },
+        "environment": {
+            "gemini_api_configured": bool(os.getenv("GOOGLE_AI_API_KEY")),
+            "maps_api_configured": bool(os.getenv("GOOGLE_MAPS_API_KEY")),
+            "dotenv_file_exists": os.path.exists(".env")
         }
     }
 

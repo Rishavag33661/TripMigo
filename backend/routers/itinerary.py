@@ -4,14 +4,29 @@ from services.gemini_service import GeminiService
 from services.maps_service import MapsService
 from models import TripRequest, ItineraryResponse, ReviewSummary
 from fastapi import Body
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 router = APIRouter()
 
+# Create singleton instances
+_gemini_service = None
+_maps_service = None
+
 def get_gemini_service() -> GeminiService:
-    return GeminiService()
+    global _gemini_service
+    if _gemini_service is None:
+        _gemini_service = GeminiService()
+    return _gemini_service
 
 def get_maps_service() -> MapsService:
-    return MapsService()
+    global _maps_service
+    if _maps_service is None:
+        _maps_service = MapsService()
+    return _maps_service
 
 @router.post("/generate", response_model=dict)
 def generate_itinerary(

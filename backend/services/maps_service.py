@@ -31,28 +31,111 @@ class MapsService:
             return {"error": "Google Maps service not available", "results": []}
         
         try:
-            # Use text search for more flexible queries
-            result = self.client.places(query=query, location=location)
-            places = result.get('results', [])
+            # Validate the query first
+            if not query or not query.strip():
+                return {"error": "Empty query provided", "results": []}
             
-            formatted_places = []
-            for place in places[:10]:  # Limit to top 10 results
-                formatted_place = {
-                    "place_id": place.get("place_id"),
-                    "name": place.get("name"),
-                    "address": place.get("formatted_address"),
-                    "rating": place.get("rating"),
-                    "user_ratings_total": place.get("user_ratings_total"),
-                    "types": place.get("type", []),
-                    "geometry": place.get("geometry", {}),
-                    "photos": self._format_photos(place.get("photo", []))
+            # Clean the query
+            query = query.strip()
+            logger.info(f"Searching for places with query: '{query}'")
+            
+            # Try different approaches based on query type
+            
+            # Method 1: Try text search (most flexible)
+            try:
+                # Use the newer places API with text search
+                import requests
+                
+                url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+                params = {
+                    'query': query,
+                    'key': self.api_key
                 }
-                formatted_places.append(formatted_place)
+                
+                response = requests.get(url, params=params)
+                result = response.json()
+                
+                if result.get('status') == 'OK':
+                    places = result.get('results', [])
+                    logger.info(f"Found {len(places)} places via text search for query: '{query}'")
+                    
+                    formatted_places = []
+                    for place in places[:10]:
+                        formatted_place = {
+                            "place_id": place.get("place_id"),
+                            "name": place.get("name"),
+                            "address": place.get("formatted_address"),
+                            "rating": place.get("rating"),
+                            "user_ratings_total": place.get("user_ratings_total"),
+                            "types": place.get("types", []),
+                            "geometry": place.get("geometry", {}),
+                            "photos": self._format_photos(place.get("photos", []))
+                        }
+                        formatted_places.append(formatted_place)
+                    
+                    return {"results": formatted_places, "status": "OK"}
+                else:
+                    logger.warning(f"Text search failed with status: {result.get('status')}")
             
-            return {"results": formatted_places, "status": "OK"}
+            except Exception as text_search_error:
+                logger.warning(f"Text search failed: {text_search_error}")
+            
+            # Method 2: Fallback to find_place
+            try:
+                result = self.client.find_place(
+                    input=query,
+                    input_type="textquery",
+                    fields=[
+                        "place_id", "name", "formatted_address", "geometry",
+                        "rating", "user_ratings_total", "types"
+                    ]
+                )
+                
+                places = result.get('candidates', [])
+                logger.info(f"Found {len(places)} places via find_place for query: '{query}'")
+                
+                formatted_places = []
+                for place in places[:10]:
+                    formatted_place = {
+                        "place_id": place.get("place_id"),
+                        "name": place.get("name"),
+                        "address": place.get("formatted_address"),
+                        "rating": place.get("rating"),
+                        "user_ratings_total": place.get("user_ratings_total"),
+                        "types": place.get("types", []),
+                        "geometry": place.get("geometry", {}),
+                        "photos": []  # Skip photos for now to avoid issues
+                    }
+                    formatted_places.append(formatted_place)
+                
+                return {"results": formatted_places, "status": "OK"}
+                
+            except Exception as find_place_error:
+                logger.warning(f"Find place failed: {find_place_error}")
+            
+            # Method 3: Last resort - geocoding
+            try:
+                geocode_result = self.client.geocode(query)
+                if geocode_result:
+                    place = geocode_result[0]
+                    formatted_place = {
+                        "place_id": place.get("place_id"),
+                        "name": place.get("formatted_address"),
+                        "address": place.get("formatted_address"),
+                        "rating": None,
+                        "user_ratings_total": None,
+                        "types": place.get("types", []),
+                        "geometry": place.get("geometry", {}),
+                        "photos": []
+                    }
+                    return {"results": [formatted_place], "status": "OK"}
+            except Exception as geocode_error:
+                logger.warning(f"Geocoding failed: {geocode_error}")
+            
+            return {"error": "All search methods failed", "results": []}
             
         except Exception as e:
-            logger.error(f"Error searching places: {e}")
+            logger.error(f"Error searching places for query '{query}': {e}")
             return {"error": str(e), "results": []}
     
     def get_place_details(self, place_id: str) -> Dict[str, Any]:
@@ -242,3 +325,48 @@ class MapsService:
             }
             formatted_steps.append(formatted_step)
         return formatted_steps
+    
+    def search_places_nearby(self, query: str, location: Optional[str] = None, radius: int = 50000) -> Dict[str, Any]:
+        """Alternative search method using nearby search"""
+        if not self.is_healthy():
+            return {"error": "Google Maps service not available", "results": []}
+        
+        try:
+            # If location is provided, use nearby search
+            if location:
+                # Geocode the location first
+                geocode_result = self.client.geocode(location)
+                if geocode_result:
+                    lat_lng = geocode_result[0]['geometry']['location']
+                    
+                    # Perform nearby search
+                    result = self.client.places_nearby(
+                        location=lat_lng,
+                        radius=radius,
+                        keyword=query
+                    )
+                    
+                    places = result.get('results', [])
+                    
+                    formatted_places = []
+                    for place in places[:10]:
+                        formatted_place = {
+                            "place_id": place.get("place_id"),
+                            "name": place.get("name"),
+                            "address": place.get("vicinity"),
+                            "rating": place.get("rating"),
+                            "user_ratings_total": place.get("user_ratings_total"),
+                            "types": place.get("types", []),
+                            "geometry": place.get("geometry", {}),
+                            "photos": self._format_photos(place.get("photos", []))
+                        }
+                        formatted_places.append(formatted_place)
+                    
+                    return {"results": formatted_places, "status": "OK"}
+            
+            # Fallback to find_place
+            return self.search_places(query, location)
+            
+        except Exception as e:
+            logger.error(f"Error in nearby search: {e}")
+            return {"error": str(e), "results": []}
