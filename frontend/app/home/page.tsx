@@ -1,9 +1,9 @@
-import Link from "next/link"
-import { NavigationHeader } from "../../components/navigation-header"
+import { VideoCarousel } from "../../components/video-carousel"
 import { PopularTrips } from "../../components/popular-trips"
 import { RecentTrips } from "../../components/recent-trips"
+import { NavigationHeader } from "../../components/navigation-header"
 import { Button } from "../../components/ui/button"
-import { VideoCarousel } from "../../components/video-carousel"
+import Link from "next/link"
 
 export default function HomePage() {
   return (
