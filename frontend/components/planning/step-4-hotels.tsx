@@ -209,6 +209,21 @@ export function PlanningStep4({ tripData, updateTripData, onNext, onPrev }: Plan
                     src={hotel.images[0] || "/placeholder.svg"}
                     alt={hotel.name}
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      console.error(`Failed to load image for ${hotel.name}:`, hotel.images[0])
+                      // Try fallback with a different image service
+                      const fallbackUrl = `https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop&auto=format`
+                      if (e.currentTarget.src !== fallbackUrl) {
+                        e.currentTarget.src = fallbackUrl
+                      } else {
+                        e.currentTarget.src = "/placeholder.svg"
+                      }
+                    }}
+                    onLoad={() => {
+                      console.log(`Successfully loaded image for ${hotel.name}:`, hotel.images[0])
+                    }}
                   />
                 </div>
                 <CardHeader className="pb-3">
