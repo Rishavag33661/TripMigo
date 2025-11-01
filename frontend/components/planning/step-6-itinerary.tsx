@@ -734,7 +734,10 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
           Download Itinerary
         </Button>
         <Button variant="outline" className="flex-1 flex items-center gap-2 bg-transparent">
-          <CreditCard className="h-4 w-4" />
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+            <line x1="1" y1="10" x2="23" y2="10" />
+          </svg>
           Proceed to Booking
         </Button>
       </div>
