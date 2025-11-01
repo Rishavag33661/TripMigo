@@ -50,6 +50,19 @@ class ApiClient {
             }
 
             const data = await response.json()
+
+            // Debug hotel data
+            if (endpoint.includes('/hotels')) {
+                console.log('Hotel API Response:', data)
+                if (data.data && Array.isArray(data.data)) {
+                    data.data.forEach((hotel: any, index: number) => {
+                        console.log(`Hotel ${index + 1}: ${hotel.name}`)
+                        console.log('Images:', hotel.images)
+                        console.log('First image URL:', hotel.images?.[0])
+                    })
+                }
+            }
+
             return data
         } catch (error) {
             clearTimeout(timeoutId)
