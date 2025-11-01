@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# TripMigo
-=======
 # 🌍 TripMigo - AI-Powered Travel Planning Platform
 
 A modern, full-stack travel planning application that uses AI to create personalized itineraries with Google Maps integration.
@@ -164,4 +161,3 @@ If you encounter any issues or have questions:
 ---
 
 **Built with ❤️ for travelers who love technology**
->>>>>>> d0ab958 (Removed hardcoded API keys)
