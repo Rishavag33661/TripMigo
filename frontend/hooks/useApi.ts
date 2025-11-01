@@ -4,7 +4,7 @@ import {
   hotelService,
   itineraryService,
   transportationService
-} from '../lib/services/api';
+} from '@/lib/services/api';
 import {
   Activity,
   ApiResponse,
@@ -13,7 +13,7 @@ import {
   Hotel,
   Itinerary,
   TravelMode
-} from '../lib/types/api';
+} from '@/lib/types/api';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Cache for API responses to prevent unnecessary re-fetching

@@ -1,6 +1,6 @@
 "use client"
 
-import type { ExtendedTripData } from '../app/planning/page'
+import type { ExtendedTripData } from "@/app/planning/page"
 import { useEffect, useState } from "react"
 
 export interface SavedItinerary {

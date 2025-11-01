@@ -1,4 +1,4 @@
-import { Hotel } from '../types/api'
+import { Hotel } from '@/lib/types/api'
 
 export const mockHotels: Hotel[] = [
     {
