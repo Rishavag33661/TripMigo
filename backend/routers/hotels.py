@@ -62,11 +62,71 @@ async def get_hotel_recommendations(
         # Generate hotel recommendations using AI
         hotels = await generate_hotel_recommendations(search_request)
         
+        # Convert backend hotel format to frontend-compatible format
+        compatible_hotels = []
+        for hotel in hotels:
+            compatible_hotel = {
+                "id": hotel.id,
+                "name": hotel.name,
+                "description": hotel.description,
+                "summary": hotel.description[:100] + "..." if len(hotel.description) > 100 else hotel.description,
+                "rating": hotel.rating,
+                "reviewCount": hotel.reviewCount,
+                "pricePerNight": {
+                    "currency": hotel.pricePerNight.get("currency", "USD"),
+                    "amount": hotel.pricePerNight.get("amount", 150),
+                    "basePrice": hotel.pricePerNight.get("amount", 150),
+                    "taxes": 0,
+                    "fees": 0
+                },
+                "images": hotel.images,
+                "location": {
+                    "address": hotel.location.address,
+                    "city": hotel.location.city,
+                    "country": destination,
+                    "coordinates": {
+                        "latitude": hotel.location.latitude or 0,
+                        "longitude": hotel.location.longitude or 0
+                    },
+                    "distanceFromCenter": {
+                        "value": 2.0,
+                        "unit": "km"
+                    },
+                    "nearbyAttractions": ["City Center", "Main Attractions"]
+                },
+                "amenities": [
+                    {
+                        "id": amenity.name.lower().replace(" ", "-"),
+                        "name": amenity.name,
+                        "category": "basic",
+                        "description": amenity.name
+                    } for amenity in hotel.amenities
+                ],
+                "roomTypes": [
+                    {
+                        "id": "standard",
+                        "name": "Standard Room",
+                        "capacity": 2,
+                        "bedType": "King",
+                        "size": 30,
+                        "priceModifier": 1.0
+                    }
+                ],
+                "policies": {
+                    "checkIn": "15:00",
+                    "checkOut": "11:00",
+                    "cancellation": "Free cancellation up to 24 hours before check-in"
+                },
+                "category": hotel.category,
+                "availabilityStatus": "available"
+            }
+            compatible_hotels.append(compatible_hotel)
+        
         return {
             "success": True,
-            "data": hotels,
+            "data": compatible_hotels,
             "destination": destination,
-            "total_hotels": len(hotels)
+            "total_hotels": len(compatible_hotels)
         }
         
     except Exception as e:
