@@ -25,7 +25,9 @@ app.add_middleware(
         "http://localhost:3001",
         "https://trip-migo.vercel.app",
         "https://tripmigo.vercel.app",
-        os.getenv("FRONTEND_URL", "https://tripmigo.vercel.app")
+        "https://trip-migo-git-main-rishavag33661s-projects.vercel.app",  # Vercel preview URLs
+        "https://trip-migo-*.vercel.app",  # Vercel branch deployments
+        os.getenv("FRONTEND_URL", "https://trip-migo.vercel.app")
     ],
     allow_credentials=True,
     allow_methods=["*"],

@@ -55,7 +55,29 @@ class GeminiService:
         
         try:
             logger.info("Sending request to Gemini AI...")
-            response = self.client.generate_content(prompt)
+            # Configure generation with timeout and other parameters
+            generation_config = genai.types.GenerationConfig(
+                temperature=0.7,
+                max_output_tokens=4096,  # Increased for detailed itineraries
+                top_p=0.8,
+                top_k=40
+            )
+            
+            # Add timeout handling with retry logic
+            import time
+            max_retries = 2
+            for attempt in range(max_retries + 1):
+                try:
+                    response = self.client.generate_content(
+                        prompt,
+                        generation_config=generation_config
+                    )
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    if attempt == max_retries:
+                        raise e  # Last attempt failed, re-raise
+                    logger.warning(f"Gemini API attempt {attempt + 1} failed: {e}. Retrying...")
+                    time.sleep(2 ** attempt)  # Exponential backoff
             
             if not response or not response.text:
                 logger.error("Empty response received from Gemini AI")
