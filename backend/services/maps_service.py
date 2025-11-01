@@ -144,16 +144,20 @@ class MapsService:
             return {"error": "Google Maps service not available"}
         
         try:
-            # Request comprehensive place details - temporarily removing photo and type fields
+            # Request comprehensive place details INCLUDING photos
             fields = [
                 "place_id", "name", "formatted_address", "geometry",
                 "rating", "user_ratings_total", "reviews",
                 "website", "formatted_phone_number", "opening_hours",
-                "price_level"
+                "price_level", "photos", "types"
             ]
             
             result = self.client.place(place_id=place_id, fields=fields)
             place_data = result.get("result", {})
+            
+            # Get and format photos 
+            photos = place_data.get("photos", [])
+            photo_urls = self._format_photos(photos)
             
             # Format the response
             formatted_place = {
@@ -164,12 +168,12 @@ class MapsService:
                 "user_ratings_total": place_data.get("user_ratings_total"),
                 "geometry": place_data.get("geometry"),
                 "reviews": self._format_reviews(place_data.get("reviews", [])),
-                "photos": [],  # Temporarily disabled due to API field issues
+                "photos": photo_urls,  # Now properly enabled with actual photo URLs
                 "website": place_data.get("website"),
                 "phone": place_data.get("formatted_phone_number"),
                 "opening_hours": place_data.get("opening_hours"),
                 "price_level": place_data.get("price_level"),
-                "types": []  # Temporarily disabled due to API field issues
+                "types": place_data.get("types", [])
             }
             
             return formatted_place
@@ -296,17 +300,24 @@ class MapsService:
             formatted_reviews.append(formatted_review)
         return formatted_reviews
     
+    def get_photo_url(self, photo_reference: str, max_width: int = 600) -> str:
+        """Get a photo URL from a photo reference"""
+        if not photo_reference or not self.api_key:
+            return ""
+        
+        return f"https://maps.googleapis.com/maps/api/place/photo?maxwidth={max_width}&photoreference={photo_reference}&key={self.api_key}"
+    
     def _format_photos(self, photos: List[Dict]) -> List[str]:
         """Format photo references into URLs"""
         if not photos:
             return []
         
         photo_urls = []
-        for photo in photos[:5]:  # Limit to top 5 photos
+        for photo in photos[:3]:  # Limit to top 3 photos for hotel images
             photo_reference = photo.get("photo_reference")
             if photo_reference:
-                # Construct photo URL
-                photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={photo_reference}&key={self.api_key}"
+                # Construct photo URL with hotel-appropriate size
+                photo_url = self.get_photo_url(photo_reference, max_width=600)
                 photo_urls.append(photo_url)
         
         return photo_urls
