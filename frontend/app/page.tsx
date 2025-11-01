@@ -1,6 +1,6 @@
-import { NavigationHeader } from '../components/navigation-header'
-import { Button } from '../components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import { NavigationHeader } from "@/components/navigation-header"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, MapPin, Plane, Users } from "lucide-react"
 import Link from "next/link"
 

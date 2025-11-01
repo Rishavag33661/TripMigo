@@ -2,15 +2,15 @@
 
 import type React from "react"
 
-import type { TripData } from '../../app/planning/page'
-import { Alert, AlertDescription } from '../ui/alert'
-import { Badge } from '../ui/badge'
-import { Button } from '../ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
-import { Input } from '../ui/input'
-import { Label } from '../ui/label'
-import { convertFormDataToTripRequest, tripPlannerApi } from '../../lib/api'
+import type { TripData } from "@/app/planning/page"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { convertFormDataToTripRequest, tripPlannerApi } from "@/lib/api"
 import { useState } from "react"
 
 const Search = ({ className }: { className?: string }) => (

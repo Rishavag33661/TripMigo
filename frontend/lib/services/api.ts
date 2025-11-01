@@ -7,7 +7,7 @@ import {
     Itinerary,
     TravelMode,
     Trip
-} from '../types/api'
+} from '@/lib/types/api'
 
 // Configuration for API endpoints
 const API_CONFIG = {
