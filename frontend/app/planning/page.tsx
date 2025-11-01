@@ -23,19 +23,20 @@ export default function PlanningPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">Plan Your Trip</h1>
-
+        
         {/* Simple step indicator */}
         <div className="mb-8">
           <div className="flex items-center space-x-4">
             {[1, 2, 3, 4, 5, 6].map((step) => (
               <div
                 key={step}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === currentStep
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step === currentStep
                     ? 'bg-primary text-primary-foreground'
                     : step < currentStep
-                      ? 'bg-primary/20 text-primary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
+                    ? 'bg-primary/20 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                }`}
               >
                 {step}
               </div>
