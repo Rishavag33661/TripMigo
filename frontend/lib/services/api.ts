@@ -12,7 +12,8 @@ import {
 // Configuration for API endpoints
 const API_CONFIG = {
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
-    timeout: 30000, // Increased timeout for AI generation
+    timeout: 30000, // Default timeout
+    hotelTimeout: 90000, // Extended timeout for hotel requests with Google Maps integration
     retryAttempts: 3,
     useMockData: false, // Use real backend by default
 }
@@ -31,7 +32,9 @@ class ApiClient {
         }
 
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout)
+        // Use extended timeout for hotel requests due to Google Maps integration
+        const timeout = endpoint.includes('/hotels') ? API_CONFIG.hotelTimeout : API_CONFIG.timeout
+        const timeoutId = setTimeout(() => controller.abort(), timeout)
 
         try {
             const response = await fetch(url, {
@@ -50,19 +53,6 @@ class ApiClient {
             }
 
             const data = await response.json()
-
-            // Debug hotel data
-            if (endpoint.includes('/hotels')) {
-                console.log('Hotel API Response:', data)
-                if (data.data && Array.isArray(data.data)) {
-                    data.data.forEach((hotel: any, index: number) => {
-                        console.log(`Hotel ${index + 1}: ${hotel.name}`)
-                        console.log('Images:', hotel.images)
-                        console.log('First image URL:', hotel.images?.[0])
-                    })
-                }
-            }
-
             return data
         } catch (error) {
             clearTimeout(timeoutId)

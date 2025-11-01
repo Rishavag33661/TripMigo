@@ -43,33 +43,53 @@ class Hotel(BaseModel):
     category: str  # budget, mid-range, luxury
 
 def get_hotel_images_from_maps(hotel_name: str, destination: str) -> List[str]:
-    """Get hotel images from Google Maps Places API"""
+    """Get hotel images from Google Maps Places API with timeout protection"""
     try:
         if not maps_service.is_healthy():
-            logger.warning("Maps service not available, using fallback images")
+            logger.warning(f"Maps service not available for {hotel_name}, using fallback images")
             return get_fallback_images()
         
-        # Search for the specific hotel
-        search_query = f"{hotel_name} hotel {destination}"
-        search_result = maps_service.search_places(search_query)
+        # Quick timeout for Maps API to prevent overall request timeout
+        import threading
+        import time
         
-        if search_result.get("status") == "OK" and search_result.get("results"):
-            # Get the first (most relevant) hotel result
-            hotel_place = search_result["results"][0]
-            place_id = hotel_place.get("place_id")
-            
-            if place_id:
-                # Get detailed place information including photos
-                place_details = maps_service.get_place_details(place_id)
-                photos = place_details.get("photos", [])
+        result = [None]  # Use list to allow modification in nested function
+        
+        def search_hotel():
+            try:
+                # Search for the specific hotel with a shorter query
+                search_query = f"{hotel_name} {destination}"
+                search_result = maps_service.search_places(search_query)
                 
-                if photos:
-                    logger.info(f"Found {len(photos)} Google Maps photos for {hotel_name}")
-                    return photos[:3]  # Return top 3 photos
+                if search_result.get("status") == "OK" and search_result.get("results"):
+                    # Get the first (most relevant) hotel result
+                    hotel_place = search_result["results"][0]
+                    place_id = hotel_place.get("place_id")
+                    
+                    if place_id:
+                        # Get detailed place information including photos
+                        place_details = maps_service.get_place_details(place_id)
+                        photos = place_details.get("photos", [])
+                        
+                        if photos and len(photos) > 0:
+                            logger.info(f"Found {len(photos)} Google Maps photos for {hotel_name}")
+                            result[0] = photos[:3]  # Return top 3 photos
+                            
+            except Exception as e:
+                logger.warning(f"Error in Google Maps search thread: {e}")
         
-        logger.warning(f"No Google Maps photos found for {hotel_name}, using fallback")
-        return get_fallback_images()
+        # Run the search in a separate thread with timeout
+        search_thread = threading.Thread(target=search_hotel)
+        search_thread.daemon = True
+        search_thread.start()
+        search_thread.join(timeout=8)  # 8 second timeout
         
+        if result[0]:
+            return result[0]
+        else:
+            logger.warning(f"No Google Maps photos found for {hotel_name} within timeout, using fallback")
+            return get_fallback_images()
+            
     except Exception as e:
         logger.error(f"Error getting hotel images from Maps API: {e}")
         return get_fallback_images()
@@ -90,6 +110,10 @@ async def get_hotel_recommendations(
     duration: int = Query(3, description="Duration of stay in days")
 ):
     """Get AI-powered hotel recommendations for a destination"""
+    import time
+    request_start = time.time()
+    logger.info(f"Hotel recommendation request: {destination}, budget: {budget}, guests: {guests}, duration: {duration}")
+    
     try:
         # Create hotel search request
         search_request = HotelSearchRequest(
@@ -162,6 +186,9 @@ async def get_hotel_recommendations(
             }
             compatible_hotels.append(compatible_hotel)
         
+        request_time = time.time() - request_start
+        logger.info(f"Hotel recommendation request completed in {request_time:.2f} seconds, returning {len(compatible_hotels)} hotels")
+        
         return {
             "success": True,
             "data": compatible_hotels,
@@ -175,9 +202,13 @@ async def get_hotel_recommendations(
 
 async def generate_hotel_recommendations(search_request: HotelSearchRequest) -> List[Hotel]:
     """Generate hotel recommendations using Gemini AI"""
+    import time
+    start_time = time.time()
+    logger.info(f"Starting hotel generation for {search_request.destination}")
     
     if not gemini_service.is_healthy():
         # Return fallback hotels if AI is not available
+        logger.warning("Gemini AI not available, using fallback hotels")
         return create_fallback_hotels(search_request.destination, search_request.budget)
     
     # Build comprehensive prompt for hotel recommendations
@@ -247,7 +278,11 @@ Make sure the response is ONLY valid JSON without any additional text before or 
 """
 
     try:
+        logger.info("Calling Gemini AI for hotel recommendations...")
+        ai_start = time.time()
         response = gemini_service.client.generate_content(prompt)
+        ai_time = time.time() - ai_start
+        logger.info(f"Gemini AI response received in {ai_time:.2f} seconds")
         hotels_text = response.text
         
         # Parse the JSON response from Gemini
@@ -285,7 +320,8 @@ Make sure the response is ONLY valid JSON without any additional text before or 
                         continue
                 
                 if hotels:
-                    logger.info(f"Generated {len(hotels)} hotel recommendations for {search_request.destination}")
+                    total_time = time.time() - start_time
+                    logger.info(f"Generated {len(hotels)} hotel recommendations for {search_request.destination} in {total_time:.2f} seconds")
                     return hotels
                         
             except json.JSONDecodeError as e:
