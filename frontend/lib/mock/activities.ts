@@ -1,4 +1,4 @@
-import { Activity } from '@/lib/types/api'
+import { Activity } from '../types/api'
 
 export const mockActivities: Activity[] = [
     {

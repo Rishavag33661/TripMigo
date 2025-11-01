@@ -1,6 +1,6 @@
 "use client"
 
-import type { ExtendedTripData } from "@/app/planning/page"
+import type { ExtendedTripData } from '../app/planning/page'
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 

@@ -1,4 +1,4 @@
-import { EssentialItem } from '@/lib/types/api'
+import { EssentialItem } from '../types/api'
 
 export const mockEssentials: EssentialItem[] = [
     // Clothing

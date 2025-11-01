@@ -1,5 +1,5 @@
-import { createAITravelManager, createTravelPromptFromTripData, formatAIResponse, getAIConfig, isAIConfigured } from '@/lib/ai'
-import type { Activity, Hotel } from '@/lib/types/api'
+import { createAITravelManager, createTravelPromptFromTripData, formatAIResponse, getAIConfig, isAIConfigured } from '../lib/ai'
+import type { Activity, Hotel } from '../lib/types/api'
 import { useCallback, useState } from 'react'
 
 interface UseAIResult<T> {

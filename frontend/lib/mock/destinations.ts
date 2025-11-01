@@ -1,4 +1,4 @@
-import { Destination } from '@/lib/types/api'
+import { Destination } from '../types/api'
 
 export const mockDestinations: Destination[] = [
     {

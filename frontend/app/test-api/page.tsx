@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { useEffect, useState } from "react"
 
 export default function TestAPIPage() {
