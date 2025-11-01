@@ -1,7 +1,6 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState } from "react"
 
 export default function ItinerariesPage() {
   const router = useRouter()
@@ -13,7 +12,7 @@ export default function ItinerariesPage() {
         <p className="text-muted-foreground mb-4">
           Your saved trip plans will appear here.
         </p>
-        <button 
+        <button
           onClick={() => router.push('/planning')}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
