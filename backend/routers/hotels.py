@@ -5,6 +5,7 @@ from services.gemini_service import GeminiService
 from services.maps_service import MapsService
 import json
 import logging
+import os
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -45,8 +46,14 @@ class Hotel(BaseModel):
 def get_hotel_images_from_maps(hotel_name: str, destination: str) -> List[str]:
     """Get hotel images from Google Maps Places API with timeout protection"""
     try:
+        # Check if Google Maps API key is configured
+        maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+        if not maps_api_key:
+            logger.warning(f"GOOGLE_MAPS_API_KEY not configured, using fallback images for {hotel_name}")
+            return get_fallback_images()
+            
         if not maps_service.is_healthy():
-            logger.warning(f"Maps service not available for {hotel_name}, using fallback images")
+            logger.warning(f"Maps service not healthy for {hotel_name}, using fallback images")
             return get_fallback_images()
         
         # Quick timeout for Maps API to prevent overall request timeout
@@ -101,6 +108,16 @@ def get_fallback_images() -> List[str]:
         "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&auto=format&fit=crop", 
         "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&h=400&auto=format&fit=crop"
     ]
+
+@router.get("/maps-status")
+async def get_maps_status():
+    """Check Google Maps API configuration status"""
+    maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    return {
+        "maps_api_configured": bool(maps_api_key),
+        "maps_service_healthy": maps_service.is_healthy(),
+        "api_key_length": len(maps_api_key) if maps_api_key else 0
+    }
 
 @router.get("/recommendations")
 async def get_hotel_recommendations(
