@@ -1,10 +1,10 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
 import { Plane, Train, Bus, Car, Ship, Clock, DollarSign } from "lucide-react"
-import type { TripData } from "@/app/planning/page"
+import type { TripData } from '../../app/planning/page'
 
 interface PlanningStep3Props {
   tripData: TripData

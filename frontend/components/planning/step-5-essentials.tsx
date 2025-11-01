@@ -1,9 +1,9 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Checkbox } from '../ui/checkbox'
 import { CreditCard } from "lucide-react"
 const Utensils = ({ className }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,7 +66,7 @@ const Clock = ({ className }: { className?: string }) => (
   </svg>
 )
 
-import type { ExtendedTripData } from "@/app/planning/page"
+import type { ExtendedTripData } from '../../app/planning/page'
 
 interface PlanningStep5Props {
   tripData: ExtendedTripData

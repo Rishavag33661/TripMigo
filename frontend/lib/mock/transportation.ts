@@ -1,4 +1,4 @@
-import { TravelMode } from '@/lib/types/api'
+import { TravelMode } from '../types/api'
 
 export const mockTravelModes: TravelMode[] = [
     {

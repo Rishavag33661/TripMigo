@@ -1,13 +1,13 @@
 ﻿"use client"
 
-import type { ExtendedTripData } from "@/app/planning/page";
-import { GoogleMapsWrapper } from "@/components/google-maps-wrapper";
-import { useItineraryStorage } from "@/components/itinerary-storage-manager";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import type { ExtendedTripData } from '../../app/planning/page';
+import { GoogleMapsWrapper } from '../google-maps-wrapper';
+import { useItineraryStorage } from '../itinerary-storage-manager';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 import { Camera, Car, Clock, Download, Hotel, MapPin, RefreshCw, Save, Share, Utensils } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
