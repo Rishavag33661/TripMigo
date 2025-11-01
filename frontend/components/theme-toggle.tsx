@@ -63,8 +63,8 @@ export function ThemeToggle() {
 
   return (
     <div className="relative theme-toggle-container">
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         size="sm"
         onClick={() => {
           console.log("Theme button clicked, current theme:", theme)
@@ -75,10 +75,10 @@ export function ThemeToggle() {
         <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         <span className="sr-only">Toggle theme</span>
       </Button>
-      
+
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-[9999] p-1">
-          <button 
+          <button
             onClick={() => {
               setTheme("light")
               setIsOpen(false)
@@ -88,7 +88,7 @@ export function ThemeToggle() {
             Light
             {theme === "light" && <span>✓</span>}
           </button>
-          <button 
+          <button
             onClick={() => {
               setTheme("dark")
               setIsOpen(false)
@@ -98,7 +98,7 @@ export function ThemeToggle() {
             Dark
             {theme === "dark" && <span>✓</span>}
           </button>
-          <button 
+          <button
             onClick={() => {
               setTheme("system")
               setIsOpen(false)
