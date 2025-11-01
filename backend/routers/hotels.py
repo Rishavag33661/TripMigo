@@ -77,7 +77,18 @@ def get_hotel_images_from_maps(hotel_name: str, destination: str) -> List[str]:
                 
                 if photos and len(photos) > 0:
                     logger.info(f"🎉 SUCCESS: Found {len(photos)} Google Maps photos for {hotel_name}")
-                    return photos[:3]  # Return top 3 photos
+                    # photos is already formatted as URLs by maps_service.get_place_details()
+                    if isinstance(photos[0], str) and photos[0].startswith("https://"):
+                        # Photos are already formatted URLs
+                        return photos[:3]
+                    else:
+                        # Photos are still raw photo references - need to format them
+                        photo_urls = []
+                        for photo in photos[:3]:
+                            if isinstance(photo, dict) and "photo_reference" in photo:
+                                photo_url = maps_service.get_photo_url(photo["photo_reference"], max_width=600)
+                                photo_urls.append(photo_url)
+                        return photo_urls if photo_urls else get_fallback_images()
                 else:
                     logger.warning(f"❌ No photos found in place details for {hotel_name}")
             else:
