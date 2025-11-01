@@ -20,18 +20,11 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000", 
-        "http://localhost:3001",
-        "https://trip-migo.vercel.app",
-        "https://tripmigo.vercel.app",
-        "https://trip-migo-git-main-rishavag33661s-projects.vercel.app",  # Vercel preview URLs
-        "https://trip-migo-*.vercel.app",  # Vercel branch deployments
-        os.getenv("FRONTEND_URL", "https://trip-migo.vercel.app")
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=["*"],  # Allow all origins for now to fix CORS issues
+    allow_credentials=False,  # Must be False when using allow_origins=["*"]
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Initialize services

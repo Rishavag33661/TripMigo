@@ -54,8 +54,14 @@ class ApiClient {
         } catch (error) {
             clearTimeout(timeoutId)
             console.error(`API request failed for ${endpoint}:`, error)
+            console.error('Full error details:', {
+                message: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : 'No stack trace',
+                url: url,
+                endpoint: endpoint
+            })
 
-            // Fallback to mock data on error
+            // Fallback to mock data on error (now with proper images)
             return this.getMockResponse<T>(endpoint)
         }
     }
@@ -304,3 +310,4 @@ export { apiClient }
 
 // Export configuration for external use
 export { API_CONFIG }
+

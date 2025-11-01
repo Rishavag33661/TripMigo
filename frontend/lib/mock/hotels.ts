@@ -16,8 +16,8 @@ export const mockHotels: Hotel[] = [
             fees: 10
         },
         images: [
-            "/bali-indonesia-rice-terraces-tropical.jpg",
-            "/santorini-greece-sunset-white-buildings.jpg"
+            "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&auto=format&fit=crop"
         ],
         location: {
             address: "123 Beach Resort Blvd",
@@ -102,8 +102,8 @@ export const mockHotels: Hotel[] = [
             fees: 3
         },
         images: [
-            "/santorini-greece-sunset-white-buildings.jpg",
-            "/european-cities-collage.jpg"
+            "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&h=400&auto=format&fit=crop"
         ],
         location: {
             address: "456 Historic Quarter St",
@@ -165,8 +165,8 @@ export const mockHotels: Hotel[] = [
             fees: 2
         },
         images: [
-            "/european-cities-collage.jpg",
-            "/placeholder.jpg"
+            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=600&h=400&auto=format&fit=crop"
         ],
         location: {
             address: "789 Business District Ave",
@@ -228,8 +228,8 @@ export const mockHotels: Hotel[] = [
             fees: 1
         },
         images: [
-            "/kyoto-japan-temples-cherry-blossoms.jpg",
-            "/placeholder.jpg"
+            "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=400&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&h=400&auto=format&fit=crop"
         ],
         location: {
             address: "321 Budget Street",
