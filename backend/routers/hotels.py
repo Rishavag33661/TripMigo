@@ -42,6 +42,46 @@ class Hotel(BaseModel):
     amenities: List[HotelAmenity]
     category: str  # budget, mid-range, luxury
 
+def get_hotel_images_from_maps(hotel_name: str, destination: str) -> List[str]:
+    """Get hotel images from Google Maps Places API"""
+    try:
+        if not maps_service.is_healthy():
+            logger.warning("Maps service not available, using fallback images")
+            return get_fallback_images()
+        
+        # Search for the specific hotel
+        search_query = f"{hotel_name} hotel {destination}"
+        search_result = maps_service.search_places(search_query)
+        
+        if search_result.get("status") == "OK" and search_result.get("results"):
+            # Get the first (most relevant) hotel result
+            hotel_place = search_result["results"][0]
+            place_id = hotel_place.get("place_id")
+            
+            if place_id:
+                # Get detailed place information including photos
+                place_details = maps_service.get_place_details(place_id)
+                photos = place_details.get("photos", [])
+                
+                if photos:
+                    logger.info(f"Found {len(photos)} Google Maps photos for {hotel_name}")
+                    return photos[:3]  # Return top 3 photos
+        
+        logger.warning(f"No Google Maps photos found for {hotel_name}, using fallback")
+        return get_fallback_images()
+        
+    except Exception as e:
+        logger.error(f"Error getting hotel images from Maps API: {e}")
+        return get_fallback_images()
+
+def get_fallback_images() -> List[str]:
+    """Get fallback hotel images from Unsplash"""
+    return [
+        "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&h=400&auto=format&fit=crop"
+    ]
+
 @router.get("/recommendations")
 async def get_hotel_recommendations(
     destination: str = Query(..., description="Destination city or location"),
@@ -223,15 +263,9 @@ Make sure the response is ONLY valid JSON without any additional text before or 
                 hotels = []
                 for hotel_dict in hotels_data.get('hotels', []):
                     try:
-                        # Ensure proper image URLs
-                        images = hotel_dict.get('images', [])
-                        if not images or all('example.com' in img for img in images):
-                            # Replace placeholder images with real Unsplash hotel images
-                            images = [
-                                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&auto=format&fit=crop",
-                                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&auto=format&fit=crop", 
-                                "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&h=400&auto=format&fit=crop"
-                            ]
+                        # Get real hotel images from Google Maps Places API
+                        hotel_name = hotel_dict.get('name', '')
+                        images = get_hotel_images_from_maps(hotel_name, destination)
                         
                         hotel = Hotel(
                             id=hotel_dict['id'],
@@ -339,15 +373,9 @@ Focus on providing REAL hotel names and accurate information for {destination}. 
             hotels = []
             for hotel_dict in hotels_data.get('hotels', []):
                 try:
-                    # Ensure images are proper URLs
-                    images = hotel_dict.get('images', [])
-                    if not images or not any('http' in img for img in images):
-                        # Add default hotel images from Unsplash
-                        images = [
-                            "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&auto=format&fit=crop",
-                            "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300&auto=format&fit=crop",
-                            "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&h=300&auto=format&fit=crop"
-                        ]
+                    # Get real hotel images from Google Maps Places API
+                    hotel_name = hotel_dict.get('name', '')
+                    images = get_hotel_images_from_maps(hotel_name, destination)
                     
                     hotel = Hotel(
                         id=hotel_dict['id'],
@@ -407,11 +435,7 @@ def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
             "rating": 4.2,
             "reviewCount": 1180,
             "pricePerNight": {"amount": min_price + 40, "currency": "USD"},
-            "images": [
-                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=400&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&h=400&auto=format&fit=crop"
-            ],
+            "images": get_fallback_images(),
             "amenities": [
                 {"name": "Free WiFi", "available": True},
                 {"name": "Restaurant", "available": True},
@@ -433,11 +457,7 @@ def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
             "rating": 4.5,
             "reviewCount": 950,
             "pricePerNight": {"amount": min_price + 60, "currency": "USD"},
-            "images": [
-                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&h=400&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&auto=format&fit=crop"
-            ],
+            "images": get_fallback_images(),
             "amenities": [
                 {"name": "Free WiFi", "available": True},
                 {"name": "Pool", "available": True},
@@ -459,11 +479,7 @@ def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
             "rating": 4.7,
             "reviewCount": 680,
             "pricePerNight": {"amount": max_price - 20, "currency": "USD"},
-            "images": [
-                "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=600&h=400&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&h=400&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&auto=format&fit=crop"
-            ],
+            "images": get_fallback_images(),
             "amenities": [
                 {"name": "Free WiFi", "available": True},
                 {"name": "Restaurant", "available": True},

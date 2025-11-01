@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { convertFormDataToTripRequest, tripPlannerApi } from "@/lib/api"
@@ -243,6 +243,9 @@ export function PlanningStep2({ tripData, updateTripData, onNext, onPrev }: Plan
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Select Your Destination</DialogTitle>
+                  <DialogDescription>
+                    Choose where you'd like to travel from our popular destinations or search for a specific location.
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   {/* Search Input */}
