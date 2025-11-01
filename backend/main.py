@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import destinations, itinerary, config, auth, planning
-from routers import hotels_simple as hotels
+from routers import hotels
 from services.gemini_service import GeminiService
 from services.maps_service import MapsService
 import os

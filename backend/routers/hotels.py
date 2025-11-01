@@ -92,11 +92,13 @@ You are a travel expert specializing in hotel recommendations. Generate a list o
 - Preferences: {', '.join(search_request.preferences) if search_request.preferences else 'None specified'}
 
 **Instructions:**
-1. Recommend diverse hotel options across different price ranges within the budget level
-2. Include mix of hotel types (business, boutique, resort, etc.)
+1. Research and recommend REAL, EXISTING hotels in {search_request.destination}
+2. Include mix of hotel types (business, boutique, resort, chain hotels, etc.)
 3. Consider location convenience and local attractions
-4. Provide realistic pricing and amenities
-5. Include variety in neighborhoods/areas
+4. Provide realistic pricing based on actual market rates
+5. Include variety in neighborhoods/areas within the destination
+6. Use actual hotel names that exist in the destination
+7. Provide realistic coordinates and addresses
 
 **Response Format (MUST be valid JSON):**
 {{
@@ -118,9 +120,9 @@ You are a travel expert specializing in hotel recommendations. Generate a list o
                 "currency": "USD"
             }},
             "images": [
-                "https://example.com/hotel1-exterior.jpg",
-                "https://example.com/hotel1-room.jpg",
-                "https://example.com/hotel1-amenity.jpg"
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&h=400&auto=format&fit=crop"
             ],
             "amenities": [
                 {{"name": "Free WiFi", "available": true}},
@@ -161,15 +163,25 @@ Make sure the response is ONLY valid JSON without any additional text before or 
                 hotels = []
                 for hotel_dict in hotels_data.get('hotels', []):
                     try:
+                        # Ensure proper image URLs
+                        images = hotel_dict.get('images', [])
+                        if not images or all('example.com' in img for img in images):
+                            # Replace placeholder images with real Unsplash hotel images
+                            images = [
+                                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&auto=format&fit=crop",
+                                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&auto=format&fit=crop", 
+                                "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&h=400&auto=format&fit=crop"
+                            ]
+                        
                         hotel = Hotel(
                             id=hotel_dict['id'],
                             name=hotel_dict['name'],
                             description=hotel_dict['description'],
                             location=HotelLocation(**hotel_dict['location']),
-                            rating=hotel_dict['rating'],
-                            reviewCount=hotel_dict['reviewCount'],
+                            rating=float(hotel_dict['rating']),
+                            reviewCount=int(hotel_dict['reviewCount']),
                             pricePerNight=hotel_dict['pricePerNight'],
-                            images=hotel_dict['images'],
+                            images=images,
                             amenities=[HotelAmenity(**amenity) for amenity in hotel_dict['amenities']],
                             category=hotel_dict['category']
                         )
@@ -192,8 +204,125 @@ Make sure the response is ONLY valid JSON without any additional text before or 
         logger.error(f"Error generating hotel recommendations: {e}")
         return create_fallback_hotels(search_request.destination, search_request.budget)
 
+def get_ai_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
+    """Generate realistic hotel recommendations using Gemini AI as fallback"""
+    
+    prompt = f"""
+You are a travel expert with access to real hotel data. Generate a list of 4-5 REAL, EXISTING hotels in {destination} for {budget} budget travelers.
+
+**Requirements:**
+- Use ACTUAL hotel names that exist in {destination}
+- Provide REAL addresses and approximate coordinates
+- Include realistic pricing, ratings, and amenities
+- Provide actual hotel image URLs (use placeholder format with Unsplash)
+- Include variety of hotel types and locations within the city
+
+**Budget Guidelines:**
+- budget: $50-120/night
+- medium: $100-250/night  
+- luxury: $250+/night
+
+**Response Format (MUST be valid JSON):**
+{{
+    "hotels": [
+        {{
+            "id": "real_hotel_1_{destination.lower().replace(' ', '_')}",
+            "name": "Actual Hotel Name",
+            "description": "Real description highlighting actual features and location",
+            "location": {{
+                "address": "Real street address in {destination}",
+                "city": "{destination}",
+                "latitude": actual_latitude,
+                "longitude": actual_longitude
+            }},
+            "rating": realistic_rating,
+            "reviewCount": realistic_count,
+            "pricePerNight": {{
+                "amount": realistic_price,
+                "currency": "USD"
+            }},
+            "images": [
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300",
+                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300",
+                "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&h=300"
+            ],
+            "amenities": [
+                {{"name": "Free WiFi", "available": true}},
+                {{"name": "Pool", "available": true_or_false}},
+                {{"name": "Gym", "available": true_or_false}},
+                {{"name": "Restaurant", "available": true_or_false}},
+                {{"name": "Spa", "available": true_or_false}},
+                {{"name": "Parking", "available": true_or_false}},
+                {{"name": "Bar", "available": true_or_false}}
+            ],
+            "category": "{budget}"
+        }}
+    ]
+}}
+
+Focus on providing REAL hotel names and accurate information for {destination}. Return ONLY valid JSON.
+"""
+
+    try:
+        response = gemini_service.client.generate_content(prompt)
+        hotels_text = response.text.strip()
+        
+        # Parse JSON response
+        json_start = hotels_text.find('{')
+        json_end = hotels_text.rfind('}') + 1
+        
+        if json_start != -1 and json_end != 0:
+            json_text = hotels_text[json_start:json_end]
+            hotels_data = json.loads(json_text)
+            
+            # Convert to Hotel objects
+            hotels = []
+            for hotel_dict in hotels_data.get('hotels', []):
+                try:
+                    # Ensure images are proper URLs
+                    images = hotel_dict.get('images', [])
+                    if not images or not any('http' in img for img in images):
+                        # Add default hotel images from Unsplash
+                        images = [
+                            "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&auto=format&fit=crop",
+                            "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300&auto=format&fit=crop",
+                            "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=400&h=300&auto=format&fit=crop"
+                        ]
+                    
+                    hotel = Hotel(
+                        id=hotel_dict['id'],
+                        name=hotel_dict['name'],
+                        description=hotel_dict['description'],
+                        location=HotelLocation(**hotel_dict['location']),
+                        rating=float(hotel_dict['rating']),
+                        reviewCount=int(hotel_dict['reviewCount']),
+                        pricePerNight=hotel_dict['pricePerNight'],
+                        images=images,
+                        amenities=[HotelAmenity(**amenity) for amenity in hotel_dict['amenities']],
+                        category=hotel_dict['category']
+                    )
+                    hotels.append(hotel)
+                except Exception as e:
+                    logger.warning(f"Failed to parse AI hotel: {e}")
+                    continue
+            
+            if hotels:
+                logger.info(f"Generated {len(hotels)} AI fallback hotels for {destination}")
+                return hotels
+                
+    except Exception as e:
+        logger.error(f"Error generating AI fallback hotels: {e}")
+        raise e
+
 def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
-    """Create fallback hotel recommendations when AI is unavailable"""
+    """Create AI-generated hotel recommendations as fallback"""
+    
+    # Try to use Gemini AI even in fallback mode for realistic hotel data
+    if gemini_service.is_healthy():
+        try:
+            return get_ai_fallback_hotels(destination, budget)
+        except Exception as e:
+            logger.warning(f"AI fallback failed, using static data: {e}")
     
     # Determine price range based on budget
     price_ranges = {
@@ -203,6 +332,7 @@ def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
     }
     min_price, max_price = price_ranges.get(budget, (120, 200))
     
+    # Static fallback as last resort
     fallback_hotels = [
         {
             "id": f"fallback_hotel_1_{destination.lower().replace(' ', '_')}",
@@ -217,7 +347,11 @@ def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
             "rating": 4.2,
             "reviewCount": 1180,
             "pricePerNight": {"amount": min_price + 40, "currency": "USD"},
-            "images": ["/placeholder.jpg", "/placeholder.jpg", "/placeholder.jpg"],
+            "images": [
+                "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&h=400&auto=format&fit=crop"
+            ],
             "amenities": [
                 {"name": "Free WiFi", "available": True},
                 {"name": "Restaurant", "available": True},
@@ -239,7 +373,11 @@ def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
             "rating": 4.5,
             "reviewCount": 950,
             "pricePerNight": {"amount": min_price + 60, "currency": "USD"},
-            "images": ["/placeholder.jpg", "/placeholder.jpg", "/placeholder.jpg"],
+            "images": [
+                "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&h=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&h=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&h=400&auto=format&fit=crop"
+            ],
             "amenities": [
                 {"name": "Free WiFi", "available": True},
                 {"name": "Pool", "available": True},
@@ -261,7 +399,11 @@ def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
             "rating": 4.7,
             "reviewCount": 680,
             "pricePerNight": {"amount": max_price - 20, "currency": "USD"},
-            "images": ["/placeholder.jpg", "/placeholder.jpg", "/placeholder.jpg"],
+            "images": [
+                "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=600&h=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&h=400&auto=format&fit=crop",
+                "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&auto=format&fit=crop"
+            ],
             "amenities": [
                 {"name": "Free WiFi", "available": True},
                 {"name": "Restaurant", "available": True},
