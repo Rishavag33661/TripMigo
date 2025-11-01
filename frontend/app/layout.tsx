@@ -1,6 +1,6 @@
-import { PageTransition } from '../components/page-transition'
-import { ThemeProvider } from '../components/theme-provider'
-import { TripDataProvider } from '../components/trip-data-manager'
+import { PageTransition } from "@/components/page-transition"
+import { ThemeProvider } from "@/components/theme-provider"
+import { TripDataProvider } from "@/components/trip-data-manager"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import type React from "react"

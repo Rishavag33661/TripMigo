@@ -1,14 +1,14 @@
 ﻿"use client"
 
-import type { ExtendedTripData } from '../../app/planning/page';
-import { GoogleMapsWrapper } from '../google-maps-wrapper';
-import { useItineraryStorage } from '../itinerary-storage-manager';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Camera, Car, Clock, Download, Hotel, MapPin, RefreshCw, Save, Share, Utensils } from "lucide-react";
+import type { ExtendedTripData } from "@/app/planning/page";
+import { GoogleMapsWrapper } from "@/components/google-maps-wrapper";
+import { useItineraryStorage } from "@/components/itinerary-storage-manager";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Camera, Car, Clock, CreditCard, Download, Hotel, MapPin, RefreshCw, Save, Utensils } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 interface PlanningStep6Props {
@@ -734,10 +734,7 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
           Download Itinerary
         </Button>
         <Button variant="outline" className="flex-1 flex items-center gap-2 bg-transparent">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-            <line x1="1" y1="10" x2="23" y2="10" />
-          </svg>
+          <CreditCard className="h-4 w-4" />
           Proceed to Booking
         </Button>
       </div>

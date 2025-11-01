@@ -1,10 +1,10 @@
 "use client"
 
-import type { ExtendedTripData } from '../../app/planning/page'
-import { Badge } from '../ui/badge'
-import { Button } from '../ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { useHotels } from '../../hooks/useApi'
+import type { ExtendedTripData } from "@/app/planning/page"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useHotels } from "@/hooks/useApi"
 import { useEffect, useMemo, useState } from "react"
 
 const Star = ({ className }: { className?: string }) => (

@@ -1,13 +1,13 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
 import { MobileMenu } from "./mobile-menu"
 import { ThemeToggle } from "./theme-toggle"
 import { useTripData } from "./trip-data-manager"
-import { Badge } from "./ui/badge"
-import { Button } from "./ui/button"
 
 // Custom SVG components
 const Plane = ({ className }: { className?: string }) => (

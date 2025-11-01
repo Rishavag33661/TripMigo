@@ -1,9 +1,9 @@
 "use client"
 
-import type { ExtendedTripData } from '../../app/planning/page';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { convertFormDataToTripRequest, tripPlannerApi } from '../../lib/api';
+import type { ExtendedTripData } from "@/app/planning/page";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { convertFormDataToTripRequest, tripPlannerApi } from "@/lib/api";
 import { useEffect, useState } from "react";
 
 interface PlanningStep6Props {

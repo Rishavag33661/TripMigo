@@ -7,12 +7,12 @@ import {
     Itinerary,
     TravelMode,
     Trip
-} from '../types/api'
+} from '@/lib/types/api'
 
 // Configuration for API endpoints
 const API_CONFIG = {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-    timeout: 10000,
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
+    timeout: 30000, // Increased timeout for AI generation
     retryAttempts: 3,
     useMockData: false, // Use real backend by default
 }

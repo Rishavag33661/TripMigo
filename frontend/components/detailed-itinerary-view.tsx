@@ -1,10 +1,10 @@
 "use client"
 
-import { GoogleMapsWrapper } from './google-maps-wrapper'
-import { Badge } from './ui/badge'
-import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
+import { GoogleMapsWrapper } from "@/components/google-maps-wrapper"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Calendar, Clock, Download, MapPin, Share } from "lucide-react"
 import { useState } from "react"
 

@@ -1,10 +1,10 @@
 ﻿"use client"
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, MapPin, Star, Users } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
-import { Badge } from "./ui/badge"
-import { Card, CardContent } from "./ui/card"
 
 interface UserTrip {
   id: string
