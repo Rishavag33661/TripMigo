@@ -25,9 +25,9 @@ const Sun = ({ className }: { className?: string }) => (
   </svg>
 )
 
-import { useTheme } from "@/components/theme-provider"
+import { useTheme } from "./theme-provider"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "./ui/button"
 
 export function ThemeToggle() {
   const [mounted, setMounted] = React.useState(false)
