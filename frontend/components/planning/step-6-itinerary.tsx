@@ -41,6 +41,7 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [itineraryName, setItineraryName] = useState("")
   const [nameError, setNameError] = useState("")
+  const [generationProgress, setGenerationProgress] = useState("Initializing AI generation...")
   const [hasUserEditedName, setHasUserEditedName] = useState(false)
   const [hasGenerated, setHasGenerated] = useState(false)
   const { saveItinerary, savedItineraries } = useItineraryStorage()
@@ -104,6 +105,7 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
     try {
       setIsGenerating(true)
       setHasGenerated(true)
+      setGenerationProgress("Preparing your trip data...")
 
       // Prepare comprehensive trip data for AI backend
       const aiRequestData = {
@@ -152,11 +154,27 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
 
       // Call AI backend for itinerary generation using direct API call
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+
+      // Progress update after 30 seconds
+      const progressUpdateId = setTimeout(() => {
+        setGenerationProgress("Still generating... AI is creating detailed recommendations for your trip.")
+      }, 30000)
+
+      // Progress update after 60 seconds
+      const finalProgressId = setTimeout(() => {
+        setGenerationProgress("Almost done... Finalizing your personalized itinerary.")
+      }, 60000)
+
+      const timeoutId = setTimeout(() => {
+        console.warn('⏰ Request timeout after 90 seconds, aborting...')
+        controller.abort()
+      }, 90000) // Increased to 90 second timeout for AI generation
 
       const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/itinerary/generate`
       console.log('🌐 Making request to API URL:', apiUrl)
       console.log('🔧 API Base URL from env:', process.env.NEXT_PUBLIC_API_BASE_URL)
+
+      setGenerationProgress("Connecting to AI server...")
 
       // Test if the API is reachable first
       try {
@@ -169,6 +187,8 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
         console.warn('⚠️ Health check failed:', healthError)
       }
 
+      setGenerationProgress("Generating your personalized itinerary with AI... This may take up to 90 seconds.")
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -179,6 +199,8 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
       })
 
       clearTimeout(timeoutId)
+      clearTimeout(progressUpdateId)
+      clearTimeout(finalProgressId)
 
       console.log('Response status:', response.status)
       console.log('Response headers:', response.headers)
@@ -259,7 +281,7 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
       let errorMessage = "AI backend unavailable. Using sample itinerary."
       if (err instanceof Error) {
         if (err.name === 'AbortError') {
-          errorMessage = "AI request timed out (30s). Using sample itinerary."
+          errorMessage = "AI request timed out (90s). This might be due to high server load. Using sample itinerary."
         } else if (err.message.includes('Failed to fetch')) {
           errorMessage = "Network error: Cannot connect to AI backend. Using sample itinerary."
         } else if (err.message.includes('CORS')) {
@@ -335,6 +357,7 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
     try {
       setIsGenerating(true)
       setHasGenerated(false) // Reset the flag to allow regeneration
+      setGenerationProgress("Preparing fresh trip data for regeneration...")
 
       // Prepare comprehensive trip data for AI backend (same as generateItinerary)
       const aiRequestData = {
@@ -398,9 +421,24 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
 
       console.log('Regeneration request payload:', requestPayload)
 
+      setGenerationProgress("Regenerating with fresh AI insights... This may take up to 90 seconds.")
+
       // Call AI backend for fresh itinerary generation
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      // Progress updates for regeneration
+      const regenProgressId = setTimeout(() => {
+        setGenerationProgress("Still regenerating... Creating fresh recommendations with AI.")
+      }, 30000)
+
+      const regenFinalId = setTimeout(() => {
+        setGenerationProgress("Almost ready... Finalizing your new itinerary.")
+      }, 60000)
+
+      const timeoutId = setTimeout(() => {
+        console.warn('⏰ Regeneration request timeout after 90 seconds, aborting...')
+        controller.abort()
+      }, 90000) // Increased to 90 second timeout for AI regeneration
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'}/itinerary/generate`, {
         method: 'POST',
@@ -412,6 +450,8 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
       })
 
       clearTimeout(timeoutId)
+      clearTimeout(regenProgressId)
+      clearTimeout(regenFinalId)
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -475,8 +515,21 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
         tripData: tripData
       })
 
-      // You might want to show user feedback here
-      alert(`Failed to regenerate itinerary: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`)
+      let errorMessage = "Failed to regenerate itinerary. Please try again."
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = "Regeneration request timed out (90s). This might be due to high server load. Please try again later."
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = "Network error: Cannot connect to server. Please check your connection and try again."
+        } else if (error.message.includes('CORS')) {
+          errorMessage = "Server configuration issue. Please try again later."
+        } else {
+          errorMessage = `Server error: ${error.message}. Please try again.`
+        }
+      }
+
+      // Show user-friendly error message
+      alert(errorMessage)
 
       setHasGenerated(true) // Reset flag even on error
     } finally {
@@ -537,7 +590,10 @@ export function PlanningStep6({ tripData, updateTripData, onPrev }: PlanningStep
         <CardContent>
           <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
           <CardTitle className="text-xl mb-2">Generating Your Perfect Itinerary</CardTitle>
-          <CardDescription>Creating a personalized day-wise plan based on your preferences...</CardDescription>
+          <CardDescription className="mb-2">Creating a personalized day-wise plan based on your preferences...</CardDescription>
+          <div className="text-sm text-muted-foreground mt-4 p-3 bg-muted rounded-lg">
+            {generationProgress}
+          </div>
         </CardContent>
       </Card>
     )
