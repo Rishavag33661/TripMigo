@@ -96,13 +96,47 @@ export function NavigationHeader({ currentPage = "home" }: NavigationHeaderProps
   const [locationError, setLocationError] = React.useState<string>("")
   const router = useRouter()
 
-  // Get user's current location
+  // Get user's current location with proper permission handling
   React.useEffect(() => {
-    const getCurrentLocation = () => {
-      if (navigator.geolocation) {
+    const getCurrentLocation = async () => {
+      // Check if geolocation is supported
+      if (!navigator.geolocation) {
+        setLocationError("Geolocation not supported")
+        setCurrentLocation("")
+        return
+      }
+
+      // Check if we already know the permission is denied
+      const savedLocationState = localStorage.getItem('tripMigo_location_state')
+      if (savedLocationState === 'denied') {
+        setCurrentLocation("")
+        return
+      }
+
+      try {
+        // Check permission status if available
+        if ('permissions' in navigator) {
+          const permission = await navigator.permissions.query({ name: 'geolocation' })
+          
+          if (permission.state === 'denied') {
+            localStorage.setItem('tripMigo_location_state', 'denied')
+            setCurrentLocation("")
+            return
+          }
+          
+          if (permission.state === 'prompt') {
+            // Don't automatically prompt for location, just skip silently
+            setCurrentLocation("")
+            return
+          }
+        }
+
+        // Only request location if permission is granted or likely to be granted
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude } = position.coords
+            localStorage.setItem('tripMigo_location_state', 'granted')
+            
             try {
               // Use a free geocoding service (no API key needed)
               const response = await fetch(
@@ -121,15 +155,20 @@ export function NavigationHeader({ currentPage = "home" }: NavigationHeaderProps
                 setCurrentLocation(`${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`)
               }
             } catch (error) {
-              console.error("Error getting location name:", error)
-              // Fallback: just show coordinates
+              // Silently handle geocoding errors - don't spam console
               setCurrentLocation(`${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`)
             }
           },
           (error) => {
-            console.error("Error getting location:", error)
-            setLocationError("Location access denied")
-            setCurrentLocation("Location unavailable")
+            // Handle permission denied more gracefully
+            if (error.code === error.PERMISSION_DENIED) {
+              localStorage.setItem('tripMigo_location_state', 'denied')
+              setCurrentLocation("")
+            } else {
+              // For other errors, just skip showing location without console spam
+              setCurrentLocation("")
+            }
+            setLocationError("")
           },
           {
             enableHighAccuracy: false, // Use less battery
@@ -137,9 +176,9 @@ export function NavigationHeader({ currentPage = "home" }: NavigationHeaderProps
             maximumAge: 600000 // Cache for 10 minutes
           }
         )
-      } else {
-        setLocationError("Geolocation not supported")
-        setCurrentLocation("Location not supported")
+      } catch (error) {
+        // Silently handle any permission API errors
+        setCurrentLocation("")
       }
     }
 
