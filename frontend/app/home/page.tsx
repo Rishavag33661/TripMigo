@@ -1,14 +1,25 @@
-import { VideoCarousel } from "../../components/video-carousel"
-import { PopularTrips } from "../../components/popular-trips"
-import { RecentTrips } from "../../components/recent-trips"
-import { NavigationHeader } from "../../components/navigation-header"
-import { Button } from "../../components/ui/button"
+import { VideoCarousel } from "@/components/video-carousel-simple"
+import { PopularTrips } from "@/components/popular-trips-simple"
+import { RecentTrips } from "@/components/recent-trips-simple"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
-      <NavigationHeader currentPage="home" />
+      {/* Simple Navigation */}
+      <header className="border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">TripMigo</h1>
+            <nav className="flex items-center space-x-4">
+              <Link href="/home" className="text-sm font-medium">Home</Link>
+              <Link href="/planning" className="text-sm font-medium">Planning</Link>
+              <Link href="/itineraries" className="text-sm font-medium">Itineraries</Link>
+            </nav>
+          </div>
+        </div>
+      </header>
 
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}

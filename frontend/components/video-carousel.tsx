@@ -1,7 +1,7 @@
 ﻿"use client"
 
-import { Button } from "./ui/button"
-import { Card, CardContent } from "./ui/card"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react"
 import { useEffect, useState } from "react"
 
