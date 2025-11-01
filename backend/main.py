@@ -23,7 +23,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000", 
         "http://localhost:3001",
-        "https://*.vercel.app",
+        "https://trip-migo.vercel.app",
+        "https://tripmigo.vercel.app",
         os.getenv("FRONTEND_URL", "https://tripmigo.vercel.app")
     ],
     allow_credentials=True,
