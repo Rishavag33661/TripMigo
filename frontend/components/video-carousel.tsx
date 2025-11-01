@@ -1,9 +1,9 @@
 ﻿"use client"
 
-import { Button } from "./ui/button"
-import { Card, CardContent } from "./ui/card"
 import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Button } from "./ui/button"
+import { Card, CardContent } from "./ui/card"
 
 interface Destination {
   id: string
