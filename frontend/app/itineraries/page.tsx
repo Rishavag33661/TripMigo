@@ -1,24 +1,54 @@
 "use client"
 
+import { DetailedItineraryView } from "@/components/detailed-itinerary-view"
+import { useItineraryStorage } from "@/components/itinerary-storage-manager"
+import { NavigationHeader } from "@/components/navigation-header"
+import { SavedItinerariesPage } from "@/components/saved-itineraries-page"
+import { useTripData } from "@/components/trip-data-manager"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function ItinerariesPage() {
+  const { updateTripData } = useTripData()
+  const { getItinerary } = useItineraryStorage()
   const router = useRouter()
+  const [selectedItinerary, setSelectedItinerary] = useState<any>(null)
+
+  const handleLoadItinerary = (itineraryId: string) => {
+    const itinerary = getItinerary(itineraryId)
+    if (itinerary) {
+      // Load the itinerary data into current trip data
+      updateTripData(itinerary.tripData)
+      // Set the selected itinerary for detailed view
+      setSelectedItinerary(itinerary)
+    }
+  }
+
+  const handleBackToList = () => {
+    setSelectedItinerary(null)
+  }
+
+  const handleEditItinerary = () => {
+    // Navigate to the itinerary step using Next.js router
+    router.push("/planning?step=6")
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Saved Itineraries</h1>
-        <p className="text-muted-foreground mb-4">
-          Your saved trip plans will appear here.
-        </p>
-        <button
-          onClick={() => router.push('/planning')}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          Plan a New Trip
-        </button>
-      </div>
+      <NavigationHeader currentPage="itineraries" />
+
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
+        {selectedItinerary ? (
+          <DetailedItineraryView
+            tripData={selectedItinerary.tripData}
+            itinerary={selectedItinerary.tripData.itinerary || []}
+            onBack={handleBackToList}
+            onEdit={handleEditItinerary}
+          />
+        ) : (
+          <SavedItinerariesPage onLoadItinerary={handleLoadItinerary} />
+        )}
+      </main>
     </div>
   )
 }
