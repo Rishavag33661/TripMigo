@@ -1,7 +1,7 @@
 "use client"
 
-import { Badge } from "./ui/badge"
-import { Button } from "./ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import * as React from "react"
