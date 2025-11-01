@@ -553,49 +553,105 @@ def create_fallback_hotels(destination: str, budget: str) -> List[Hotel]:
     
     return hotels
 
-@router.get("/hotels/simple-maps-test")
-async def simple_maps_test():
-    """Simple test of Google Maps integration"""
+@router.get("/debug-maps")
+async def debug_google_maps():
+    """Debug Google Maps photo integration step by step"""
     try:
-        maps_service = MapsService()
+        # Test the exact same logic used in get_hotel_images_from_maps
+        hotel_name = "Park Hyatt Tokyo"
+        destination = "Tokyo"
         
-        # Test search
-        search_result = maps_service.search_places("Park Hyatt Tokyo")
+        logger.info(f"🔍 Starting debug for {hotel_name} in {destination}")
         
-        if search_result.get("status") == "OK" and search_result.get("results"):
-            place = search_result["results"][0]
-            place_id = place.get("place_id")
+        # Check service health
+        maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+        if not maps_api_key:
+            return {"error": "GOOGLE_MAPS_API_KEY not configured"}
             
-            # Test place details with photos
-            if place_id:
-                details = maps_service.get_place_details(place_id)
-                photos = details.get("photos", [])
-                
-                # Generate photo URLs if photos exist
-                photo_urls = []
-                if photos:
-                    for photo in photos[:2]:  # First 2 photos
-                        photo_url = maps_service.get_photo_url(photo["photo_reference"], max_width=400)
-                        photo_urls.append(photo_url)
-                
-                return {
-                    "status": "success",
-                    "search_status": search_result.get("status"),
-                    "place_found": place.get("name"),
-                    "place_id": place_id,
-                    "photos_count": len(photos),
-                    "sample_photo_urls": photo_urls
-                }
+        if not maps_service.is_healthy():
+            return {"error": "Maps service not healthy"}
         
-        return {
-            "status": "no_results",
-            "search_status": search_result.get("status"),
-            "error": "No places found"
+        # Step 1: Search for the hotel
+        search_query = f"{hotel_name} {destination}"
+        logger.info(f"🔍 Searching for: {search_query}")
+        search_result = maps_service.search_places(search_query)
+        
+        debug_info = {
+            "step1_search": {
+                "query": search_query,
+                "status": search_result.get("status"),
+                "results_count": len(search_result.get("results", []))
+            }
         }
         
+        if search_result.get("status") == "OK" and search_result.get("results"):
+            hotel_place = search_result["results"][0]
+            place_id = hotel_place.get("place_id")
+            
+            debug_info["step2_place"] = {
+                "place_id": place_id,
+                "name": hotel_place.get("name"),
+                "address": hotel_place.get("address")
+            }
+            
+            if place_id:
+                # Step 2: Get place details with photos
+                logger.info(f"✅ Getting place details for {place_id}")
+                place_details = maps_service.get_place_details(place_id)
+                photos = place_details.get("photos", [])
+                
+                debug_info["step3_details"] = {
+                    "photos_count": len(photos),
+                    "photos_raw": photos[:2] if photos else [],
+                    "place_details_keys": list(place_details.keys())
+                }
+                
+                if photos and len(photos) > 0:
+                    # Step 3: Generate photo URLs
+                    photo_urls = []
+                    for i, photo in enumerate(photos[:3]):
+                        if isinstance(photo, str):
+                            # If photo is already a URL
+                            photo_urls.append(photo)
+                        elif isinstance(photo, dict) and "photo_reference" in photo:
+                            # If photo is a dict with photo_reference
+                            photo_url = maps_service.get_photo_url(photo["photo_reference"], max_width=600)
+                            photo_urls.append(photo_url)
+                        else:
+                            logger.warning(f"Unknown photo format: {type(photo)} - {photo}")
+                    
+                    debug_info["step4_final"] = {
+                        "success": True,
+                        "photo_urls": photo_urls,
+                        "would_return": photo_urls
+                    }
+                    
+                    return debug_info
+                else:
+                    debug_info["step4_final"] = {
+                        "success": False,
+                        "error": "No photos found in place details",
+                        "would_return": "fallback_images"
+                    }
+            else:
+                debug_info["step4_final"] = {
+                    "success": False,
+                    "error": "No place ID found",
+                    "would_return": "fallback_images"
+                }
+        else:
+            debug_info["step4_final"] = {
+                "success": False,
+                "error": f"Search failed with status: {search_result.get('status')}",
+                "would_return": "fallback_images"
+            }
+        
+        return debug_info
+        
     except Exception as e:
+        logger.error(f"❌ Debug error: {e}")
         return {
-            "status": "error",
             "error": str(e),
-            "api_key_configured": bool(os.getenv("GOOGLE_MAPS_API_KEY"))
+            "step": "exception_caught",
+            "would_return": "fallback_images"
         }
